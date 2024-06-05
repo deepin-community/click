@@ -1,0 +1,37 @@
+Description: Re-check this patch. The tests fail if run as root.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+
+--- a/click_package/tests/test_database.py.in
++++ b/click_package/tests/test_database.py.in
+@@ -508,6 +508,11 @@
+             self.assertFalse(preloads["chown"].called)
+ 
+     def test_ensure_ownership(self):
++
++        # skip this test, it does not work when run as root
++        if os.geteuid() == 0:
++            return
++
+         def stat_side_effect(name, limit, ver, path, buf):
+             st = self.convert_stat_pointer(name, buf)
+             if path == limit:
+@@ -526,6 +531,7 @@
+                 lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             self._set_stat_side_effect(
+                 preloads, stat_side_effect, self.db.props.root)
++            preloads["chown"].return_value = 0
+ 
+             self._make_ownership_test()
+             self.db.ensure_ownership()
+@@ -557,6 +563,11 @@
+                 Click.DatabaseError.ENSURE_OWNERSHIP, self.db.ensure_ownership)
+ 
+     def test_ensure_ownership_failed_chown(self):
++
++        # skip this test, it does not work when run as root
++        if os.geteuid() == 0:
++            return
++
+         def stat_side_effect(name, limit, ver, path, buf):
+             st = self.convert_stat_pointer(name, buf)
+             if path == limit:

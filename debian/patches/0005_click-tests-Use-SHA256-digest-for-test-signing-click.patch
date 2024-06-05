@@ -1,0 +1,31 @@
+From 594d4291bade205ca23b1d6568e16c8e454b59bb Mon Sep 17 00:00:00 2001
+From: Marius Gripsgard <marius@ubports.com>
+Date: Tue, 7 Jun 2022 16:07:22 +0200
+Subject: [PATCH] click/tests: Use SHA256 digest for test signing clicks
+
+If not we can end up using SHA1 this will result in verify rejecting it
+due to weak digest.
+---
+ click_package/tests/integration/data/evil-keyring/gpg.conf   | 1 +
+ click_package/tests/integration/data/origin-keyring/gpg.conf | 1 +
+ 2 files changed, 2 insertions(+)
+ create mode 100644 click_package/tests/integration/data/evil-keyring/gpg.conf
+ create mode 100644 click_package/tests/integration/data/origin-keyring/gpg.conf
+
+diff --git a/click_package/tests/integration/data/evil-keyring/gpg.conf b/click_package/tests/integration/data/evil-keyring/gpg.conf
+new file mode 100644
+index 0000000..825521d
+--- /dev/null
++++ b/click_package/tests/integration/data/evil-keyring/gpg.conf
+@@ -0,0 +1 @@
++digest-algo SHA256
+diff --git a/click_package/tests/integration/data/origin-keyring/gpg.conf b/click_package/tests/integration/data/origin-keyring/gpg.conf
+new file mode 100644
+index 0000000..825521d
+--- /dev/null
++++ b/click_package/tests/integration/data/origin-keyring/gpg.conf
+@@ -0,0 +1 @@
++digest-algo SHA256
+-- 
+2.36.1
+

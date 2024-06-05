@@ -1,0 +1,19 @@
+Description: Enforce LANG=C before running sphinx-build.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Abstract:
+ In Click's conf.py (Sphinx configuration) there is some nasty
+ date string extraction/conversion hack that fails if LANG is
+ set to anything else than C or en_US.UTF-8 (or alike).
+
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -1,6 +1,9 @@
+ # Makefile for Sphinx documentation
+ #
+ 
++# no locale support
++export LC_ALL=C
++
+ # You can set these variables from the command line.
+ SPHINXOPTS    =
+ SPHINXBUILD   = sphinx-build

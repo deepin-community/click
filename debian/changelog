@@ -1,5 +1,227 @@
-template-repository (1.0-1) unstable; urgency=medium
+click (0.5.2-3) unstable; urgency=medium
 
-  * Initial release
+  * debian/watch:
+    + Update file for recent GitLab changes of the tags overview page.
+  * debian/patches:
+    + Add 0006_fix-implicit-function-declaration.patch. Make -Werror=implicit-
+      function-declaration unnecessary.
+    + Add 0007_add-support-for-loongarch.patch. Thanks to Ruilong Wu for
+      providing the patch. Resolve FTBFS on loongarch architecture. (Closes:
+      #1067815).
+  * debian/rules:
+    + Drop DEB_CFLAGS_MAINT_STRIP = -Werror=implicit-function-declaration.
+  * debian/{rules,click.install}:
+    + Set systemdsystemunitdir to /usr/lib/systemd/system (not
+      /lib/systemd/system/ anymore).
+  * Revert "debian/control: Make bin:pkg python3-click-package arch:all."
+    The python3-click-package module contains:
+    preload_path = "/usr/lib/<multiarch>/click/libclickpreload.so"
+    in paths.py and should thus always be arch:any. This should fix
+    autopkgtest builds on non-amd64 architectures. (Closes: #1070982).
+  * debian/control:
+    + Bump Standards-Version to 4.7.0. No changes needed.
+    + Drop B-D python3-six. Patched out in 1015_drop-using-six.patch.
 
- -- Tsic404 <liuheng@deepin.org>  Sat, 28 Jan 2023 13:46:49 +0800
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 13 May 2024 18:21:51 +0200
+
+click (0.5.2-2) unstable; urgency=medium
+
+  * debian/control:
+    + Drop python3-mock. (Closes: #1067244).
+    + Drop from B-D: python3-pep8.
+    + Bump Standards-Version: to 4.6.2. No changes needed.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 20 Mar 2024 21:04:50 +0100
+
+click (0.5.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches:
+    + Rebase 1001_fully-adjust-DEFAULT_ROOT-if-set-via-configure-option.patch.
+    + Drop 0003_Drop-remaining-translation-bits.patch. Applied upstream.
+    + Drop 1011_fix-home-dir-in-integration-test.patch. Accepted upstream.
+    + Drop 1013_pyflakes-fixes.patch. Accepted upstream.
+    + Drop 0001_Re-enable-some-tests-that-were-skipped-due-to-CI-iss.patch.
+      Applied upstream.
+    + Drop 0002_Require-dbus.service-for-click-user-hooks.service.patch.
+      Applied upstream.
+    + Drop 1016_drop-chroot-integration-tests-deprecated-upstream.patch and
+      1017_drop_chroot-tests-deprecated-upstream.patch. Both accepted upstream.
+    + Drop 1019a_reenable-user-tests.patch. Accepted upstream.
+    + Drop 1019b_reenable-install-tests.patch. Accepted upstream.
+    + Drop 0004_fix-pyversion-check.patch. Applied (differently) upstream.
+    + Drop 0006_Fix-crash-on-ppc64el.patch. Applied upstream.
+    + Drop 0001-preload-passwd-pw_name-is-required-by-tar.patch. Applied
+      upstream.
+    + Drop 1004_skip-test-ensure-ownership-quick-if-correct.patch. Not required
+      anymore.
+    + Add 1015_drop-using-six.patch. Stop using deprecated python3-six. (Closes:
+      #1064608).
+    + Add 1016_dont-ship-tests-in-python3-click-package.patch. Make build
+      reproducible. (Closes: #1027988).
+    + Trivially rebase patches 1005 and 1010.
+    + Add 2002_skip-framework-integration-tests.patch. Ignore .placeholder file
+      in /usr/share/click/frameworks/ during unit tests.
+  * debian/control:
+    + Add to B-D: libproperties-cpp-dev.
+    + Add to B-D: dbus-test-runner.
+    + In B-D, switch from gobject-introspection to gobject-introspection-bin.
+      Thanks, lintian.
+    + In B-D, switch from pkg-config to pkgconf. Thanks, lintian.
+    + Switch from gobject-introspection to gobject-introspection-bin. Thanks,
+      lintian.
+    + Make bin:pkg python3-click-package arch:all.
+  * debian/:
+    + Add new bin:pkg click-service.
+  * debian/rules:
+    + Create .placeholder file in /usr/share/click/frameworks/. Thanks,
+      lintian.
+  * debian/copyright:
+    + Add auto-generated copyright.in file.
+    + Rewrite copyright attributions.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 20 Mar 2024 09:04:17 +0100
+
+click (0.5.0-11) unstable; urgency=medium
+
+  * debian/patches:
+    + Trivially rebase 0001-preload-passwd-pw_name-is-required-by-tar.patch.
+  * debian/rules:
+    + Whitespace fix.
+    + Strip hardening flag -Werror=implicit-function-declaration. (Closes:
+      #1066308).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 13 Mar 2024 15:00:47 +0100
+
+click (0.5.0-10) unstable; urgency=medium
+
+  [ Mike Gabriel ]
+  * debian/patches: Modify 1020_run-sphinx-build-with-LANG-C.patch,
+    use LC_ALL instead of LANG.
+  * debian/watch: Amend watch URL.
+
+  [ Marius Gripsgard ]
+  * debian/control: Use my debian email
+  * debian/patches: Add patch to fix crash in preload (Closes: #1059801)
+    (Closes: #1061010)
+
+ -- Marius Gripsgard <mariogrip@debian.org>  Tue, 30 Jan 2024 00:40:42 +0100
+
+click (0.5.0-9) unstable; urgency=medium
+
+  * debain/control:
+    + B-Depend directly on python3-mock
+
+ -- Marius Gripsgard <marius@ubports.com>  Mon, 02 Jan 2023 09:29:44 +0100
+
+click (0.5.0-8) unstable; urgency=medium
+
+  * Re-upload to unstable as is.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 20 Jun 2022 21:15:18 +0200
+
+click (0.5.0-8~exp1) experimental; urgency=medium
+
+  * Test-upload to experimental.
+
+  * debian/control:
+    + Bump Standards-Version: to 4.6.1. No changes needed.
+    + Mark bin:pkg click-doc as Multi-Arch:foreign.
+  * debian/patches:
+    + Replace patch content in 0006_Fix-crash-on-ppc64el.patch by a proper fix
+      by Adrian Bunk. Thanks for that!
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sat, 18 Jun 2022 14:45:24 +0200
+
+click (0.5.0-7) unstable; urgency=medium
+
+  [ Marius Gripsgard ]
+  * debian/patches:
+    + Add 0006_Fix-crash-on-ppc64el.patch. A very odd way to fix FTBFS on
+      ppc64el.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Thu, 16 Jun 2022 21:56:45 +0200
+
+click (0.5.0-6) unstable; urgency=medium
+
+  [ Marius Gripsgard ]
+  * debian/patches:
+    + Add 0004_fix-pyversion-check.patch: Fix Python version checking in
+      click_package/install.py.
+    + Add 0005_click-tests-Use-SHA256-digest-for-test-signing-click.patch.
+      Fix failing deb-verify call.
+
+  [ Mike Gabriel ]
+  * debian/patches:
+    + Replace 1002_configure-no-intltool-support-required.patch by official
+      upstream patch 0003_Drop-remaining-translation-bits.patch.
+  * debian/patches:
+    + Add various patches related to running unit tests as root.
+        0001_Re-enable-some-tests-that-were-skipped-due-to-CI-iss.patch
+        0002_Require-dbus.service-for-click-user-hooks.service.patch
+        1004_skip-test-ensure-ownership-quick-if-correct.patch (updated)
+        1005_silence-gi-repository-import-warnings.patch
+        1006_click-tempdir-own-by-user-daemon-if-tests-run-as-root.patch
+        1009_fix-unit-tests-as-root.patch
+        1010_fix-ensure-ownership.patch
+        1011_fix-home-dir-in-integration-test.patch
+        1013_pyflakes-fixes.patch
+        1014_improve-check-for-overlayfs-kernel-module.patch
+        1016_drop-chroot-integration-tests-deprecated-upstream.patch
+        1017_drop_chroot-tests-deprecated-upstream.patch
+        1018_0755-tempdir-permissions.patch
+    + Re-enable previously skipped tests:
+        1019a_reenable-user-tests.patch
+        1019b_reenable-install-tests.patch
+    + Add 1020_run-sphinx-build-with-LANG-C.patch. Don't run the
+      debian/changelog date extraction hack in Sphinx's conf.py with a non-C
+      locale.
+    + Add 2001_tox-ini-only-use-versions-available-in-Debian.patch. Add recent
+      Python3 versions, drop old Python2 and Python3 versions.
+  * debian/click-doc.doc-base:
+    + Add file.
+  * debian/:
+     Convert upstream's GPG private keys (historically shipped in debian/
+     subfolders) to new format and provide them separately.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Thu, 09 Jun 2022 15:42:48 +0200
+
+click (0.5.0-5) unstable; urgency=medium
+
+  * debian/patches:
+    + Add 1004_skip-test-ensure-ownership-quick-if-correct.patch. Skip unit
+      test that started failing with Python 3.10. Issue has been reported
+      upstream.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 02 Feb 2022 13:28:36 +0100
+
+click (0.5.0-4) unstable; urgency=medium
+
+  * d/t/control:
+    + Add kmod to Depends: field.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Tue, 14 Dec 2021 20:09:42 +0100
+
+click (0.5.0-3) unstable; urgency=medium
+
+  * d/t/control:
+    + Fix libclick-dev dependency.
+    + Drop gir1.2-click-0.4, gets pulled-in with libclick-dev.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 08 Dec 2021 17:20:22 +0100
+
+click (0.5.0-2) unstable; urgency=medium
+
+  * Upload to unstable.
+
+  * debian/control:
+    + Add to B-D: python3-pip. Required since python3.10.
+    + Bump Standards-Version: 4.6.0. No changes needed.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 22 Nov 2021 21:53:32 +0100
+
+click (0.5.0-1) experimental; urgency=medium
+
+  * Initial upload to Debian. (Closes: #986125).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Tue, 06 Apr 2021 21:00:47 +0200

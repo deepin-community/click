@@ -1,0 +1,16 @@
+[Unit]
+Description=Run Click user-level hooks
+Documentation=man:click(1)
+Wants=dbus.socket dbus.service
+After=dbus.socket
+Before=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=@bindir@/click hook run-user
+Restart=no
+
+[Install]
+WantedBy=graphical-session.target

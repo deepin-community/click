@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# click - mock version of the click command for click-service integration tests
+#
+# Copyright (C) 2023 Guido Berhoerster <guido+ubports@berhoerster.name>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+[ -n "${TEST_TMPDIR}" ] || exit 1
+
+exec >>"${TEST_TMPDIR}/click.log" 2>&1
+
+printf 'click invocation: click %s\n' "$*"
+
+install () {
+    [ $# -eq 4 ] || exit 2
+    [ $2 = "--all-users" ] || exit 1
+    [ $3 = "--allow-unauthenticated" ] || exit 1
+    case $4 in
+    /proc/*/fd/*)
+        printf '%s installed' "$(readlink "$4")"
+        return 0
+        ;;
+    *)
+        return 1
+    esac
+}
+
+case $1 in
+install)
+    install "$@"
+    ;;
+*)
+    exit 1
+esac

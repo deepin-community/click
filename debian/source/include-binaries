@@ -1,0 +1,4 @@
+debian/evil-keyring/pubring.gpg
+debian/evil-keyring/trustdb.gpg
+debian/origin-keyring/pubring.gpg
+debian/origin-keyring/trustdb.gpg

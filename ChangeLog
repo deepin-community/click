@@ -1,0 +1,3382 @@
+2024-03-20 Mike Gabriel
+
+        * Release 0.5.2 (HEAD -> main, tag: 0.5.2)
+
+2024-03-16 Mike Gabriel
+
+        * Merge branch 'personal/peat-psuwit/dont-clobber-ld-preload' into
+          'main' (ae4d707)
+
+2024-03-16 Ratchanan Srirattanamet
+
+        * tests/gimock: don't overwrite previous LD_PRELOAD (a819c57)
+
+2024-03-16 Mike Gabriel
+
+        * Merge branch 'personal/peat-psuwit/build-on-noble' into 'main'
+          (6c67d0f)
+
+2024-03-15 Ratchanan Srirattanamet
+
+        * preload/: adjust to how stat()'s ABI changes overtime (ada20ae)
+
+2024-03-16 Ratchanan Srirattanamet
+
+        * tests: adjust to how stat()'s ABI changes overtime (807145f)
+          Fixes:
+          https://gitlab.com/ubports/development/core/click/-/issues/5
+
+2024-01-30 Marius Gripsgard
+
+        * preload: passwd pw_name is required by tar (4da8fad)
+
+2024-03-15 Ratchanan Srirattanamet
+
+        * configure.ac, setup.py.in: filter down package version to pass
+          PEP440 (feb5421)
+        * click-service: fix crash due to incorrect dereferencing order
+          (a1e144f)
+        * debian/control: modernize build dependencies (2a6f658)
+
+2023-10-15 Mike Gabriel
+
+        * Release 0.5.1 (6ab4893) (tag: 0.5.1)
+        * d/changelog: Mark as released. (054adc1)
+
+2023-08-24 Marius Gripsgard
+
+        * Merge branch 'largefile' into 'main' (09e557f)
+
+2023-07-08 Luca Weiss
+
+        * preload/clickpreload.c: define _LARGEFILE64_SOURCE (f9f7f12)
+
+2023-04-21 Mike Gabriel
+
+        * Merge branch 'personal/peat-psuwit/fix-single-db-refcount-loop'
+          into 'main' (0de0e07)
+
+2023-04-13 Ratchanan Srirattanamet
+
+        * lib/click: mark SingleDB's constructor as internal (7892cee)
+        * lib/click: avoid reference loop in SingleDB (1a172c9)
+
+2023-04-20 Marius Gripsgard
+
+        * Merge branch 'personal/peat-psuwit/21-remove-every-db-fallout' into
+          'main' (36d20fc)
+
+2023-04-18 Ratchanan Srirattanamet
+
+        * click-service/tests: remove unregister case from the mock (bafdd2d)
+        * click-service: also handle removing upgraded app correctly
+          (efa24ff)
+
+2023-04-12 Ratchanan Srirattanamet
+
+        * click-service: add regression test for #21 (c7970d5)
+
+2023-04-11 Ratchanan Srirattanamet
+
+        * click-service: remove clicks with libclick, properly across 2
+          registries (05db0c1)
+          Fixes:
+          https://gitlab.com/ubports/development/core/click/-/issues/21
+
+2023-03-09 Ratchanan Srirattanamet
+
+        * Merge branch 'personal/gberh/fix-symlink-removal' into 'main'
+          (5cb9cd6)
+
+2023-03-09 Guido Berhoerster
+
+        * Fix the removal of symlinked directories (0120bac)
+
+2023-03-03 Guido Berhoerster
+
+        * Merge branch 'personal/peat-psuwit/migrate-every-db' into 'main'
+          (ac925b7)
+
+2023-03-03 Ratchanan Srirattanamet
+
+        * commands/migrate: always migrate all packages on every registry
+          (ea90883)
+
+2023-02-28 Mike Gabriel
+
+        * Merge branch 'personal/peat-psuwit/19-click-service-remove-user'
+          into 'main' (c87b399)
+
+2023-03-01 Ratchanan Srirattanamet
+
+        * click-service: remove minor memory leak in main() (402d4ea)
+        * click-service: also remove app from user DB (bf9f776)
+          Fixes:
+          https://gitlab.com/ubports/development/core/click/-/issues/19
+
+2023-02-22 Mike Gabriel
+
+        * Merge branch 'personal/gberh/unrestricted-migrate' into 'main'
+          (aaf2735)
+
+2023-02-20 Guido Berhoerster
+
+        * Allow migrations for non-preinstalled apps (1b76eae)
+        * Merge branch 'personal/gber/service-rewrite' into 'main' (d7d84b5)
+
+2023-02-15 Guido Berhoerster
+
+        * Update bug reporting URL (194d340)
+
+2023-02-14 Guido Berhoerster
+
+        * Add new integration test suite for click-service (22c2b17)
+
+2023-02-01 Guido Berhoerster
+
+        * Add test and debug mode (ce38c21)
+
+2022-12-20 Guido Berhoerster
+
+        * Silence unused parameter warnings (fd2aff4)
+        * Enforce permissions on package file (8fec16c)
+        * Remove C++ unit tests no longer applicable (21915ec)
+
+2022-12-15 Guido Berhoerster
+
+        * Simplify DBus service (01c4b62)
+
+2023-01-31 Mike Gabriel
+
+        * Merge branch 'personal/gberh/dh-12' into 'main' (0be49c3)
+
+2023-01-30 Guido Berhoerster
+
+        * Update to dh version 12 (f1fa8a4)
+
+2023-01-20 Guido Berhoerster
+
+        * Merge branch 'personal/sunweaver/reenable-skipped-tests' into
+          'main' (3caf54a)
+
+2023-01-19 Mike Gabriel
+
+        * click_package/tests/test_{install,user}.py: Re-enable some skip
+          tests. They seem to run these days. (b257a5c)
+
+2023-01-20 Guido Berhoerster
+
+        * Merge branch 'personal/sunweaver/drop-chroot-tests' into 'main'
+          (9898416)
+
+2023-01-19 Mike Gabriel
+
+        * click_package/tests/test_chroot.py: Drop tests. Creating click
+          packages is handled via clickable these days. (4a1b99a)
+        * click_package/tests/integration/test_chroot.py: Drop tests.
+          Creating click packages is handled via clickable these
+          days. (a84bd46)
+
+2023-01-20 Guido Berhoerster
+
+        * Merge branch 'personal/sunweaver/pyflakes-fixes' into 'main'
+          (7aeb575)
+
+2023-01-19 Mike Gabriel
+
+        * click_package/{framework.py,tests/test_build.py}: Fix some pyflakes
+          complaints. (7d3abb7)
+
+2023-01-20 Guido Berhoerster
+
+        * Merge branch
+          'personal/sunweaver/fix-homedir-in-integration-test.patch'
+          into 'main' (5321c80)
+
+2023-01-19 Mike Gabriel
+
+        * click_package/tests/integration/test_signatures.py: Don't copy test
+          results in cjwatson's home directory. (17385ef)
+
+2023-01-20 Jami Kettunen
+
+        * Merge branch 'personal/sunweaver/fix-parallel-build-failures' into
+          'main' (781e090)
+
+2023-01-19 Mike Gabriel
+
+        * service/Makefile.am: Let dbus-interface.cpp depend on generation of
+          click-proxy.h. (d9b133d)
+
+2022-12-24 Alfred Neumayer
+
+        * Merge branch 'personal/mariogrip/clickmigrations' into 'main'
+          (89338f9)
+
+2022-12-23 Marius Gripsgard
+
+        * [migration] Do launcher migration (3e74bc0)
+
+2022-12-18 Marius Gripsgard
+
+        * Initial migration script (b9f4642)
+
+2022-07-22 Mike Gabriel
+
+        * Merge branch 'smu-ggl-main-patch-25615' into 'main' (e41fec1)
+
+2022-07-22 Sven M
+
+        * Fix version checks. (6ff3167)
+
+2022-07-13 Marius Gripsgard
+
+        * Merge branch 'personal/peat-psuwit/AccountsService' into 'main'
+          (79ba1df)
+
+2022-07-13 Ratchanan Srirattanamet
+
+        * lib/click/user.vala: query AccountsService if this user is normal
+          (75383ef)
+          Fixes:
+          https://gitlab.com/ubports/development/core/click/-/issues/11
+
+2022-06-22 Ratchanan Srirattanamet
+
+        * Merge branch 'ubports/focal_-_installer-service' into 'main'
+          (aa433d0)
+
+2022-06-18 Mike Gabriel
+
+        * Merge branch 'main' into 'main' (a943889)
+
+2022-06-17 Adrian Bunk
+
+        * preload/clickpreload.c: Fix the prototypes of libc_open{,64}()
+          (c8d3124)
+
+2022-05-31 Marius Gripsgard
+
+        * Merge branch 'personal/mariogrip/focal_-_fixverbug' into 'main'
+          (dca9bd4)
+
+2022-06-01 Marius Gripsgard
+
+        * install.py: Fix silly version check bug (6d25140)
+
+2021-12-07 Ratchanan Srirattanamet
+
+        * service: add a list of files to clean (8b4250d)
+        * debian: move click-service into its own package (0acc1bd)
+        * service: always return true in method handlers (3d0ecb2)
+        * service: turns "id has space" message into a DBus error (a1ddb4c)
+
+2021-11-24 Robert Tari
+
+        * service/dbus-interface.cpp: Check for whitespaces in package name
+          before invoking removal (281b0a1)
+
+2021-07-13 Rodney Dawes
+
+        * service: Manually set PATH variable to default when not set.
+          (d1195f6)
+
+2021-07-09 Rodney Dawes
+
+        * Add tests for new install/remove service (5beebbb)
+
+2021-07-06 Rodney Dawes
+
+        * Add a dbus service for installing/removing clicks (c6105f4)
+
+2021-05-13 Ratchanan Srirattanamet
+
+        * Merge branch 'ubports/focal_-_systemd' into 'main' (00660eb)
+
+2021-05-04 Rodney Dawes
+
+        * Require dbus.service for click-user-hooks.service (0d3665f)
+
+2021-04-07 Rodney
+
+        * Merge branch 'gettext' into 'main' (2e9cdd7)
+
+2021-04-04 Luca Weiss
+
+        * Drop remaining translation bits (d5aa4b8)
+
+2021-03-25 Marius Gripsgard
+
+        * Merge branch 'ubports/focal_-_reenable-some-tests' into 'main'
+          (c01ac0e)
+
+2021-03-19 Rodney Dawes
+
+        * Re-enable some tests that were skipped due to CI issues. (4505907)
+
+2021-03-19 Rodney
+
+        * Merge branch 'ubports/focal_-_build' into 'main' (5702448)
+
+2021-03-17 Rodney Dawes
+
+        * Release 0.5.0 (9ac6cb3)
+
+2021-03-12 Rodney Dawes
+
+        * Replace old bzr references (e0b43b9)
+        * Remove coreapps build integration test for now. (c068f2b)
+        * Remove upstart support as we only need systemd now. (53e7982)
+
+2021-03-10 Rodney Dawes
+
+        * Only support lomiri-app-launch now. (dc89b53)
+        * Drop the packagekit plugin. (0f723c2)
+        * Add dh-python to build dependencies. (c6cf149)
+        * Clean up debian files with wrap-and-sort -ast. (0509ac0)
+        * Skip test cases failing due to preload hack not working on 20.04.
+          (56deb4e)
+        * Handle error quark naming convention difference with newer glib.
+          (68f7e8a)
+
+2021-03-17 Rodney Dawes
+
+        * Move Jenkinsfile to debian folder. (d7fe248)
+
+2021-03-10 Rodney Dawes
+
+        * Update the Jenkinsfile (7f105ba)
+
+2020-05-17 Marius Gripsgard
+
+        * Merge pull request #10 from z3ntu/xenial_-_musl (0691246)
+
+2018-12-30 Luca Weiss
+
+        * open64 & fopen64 don't exist on musl (de701d8)
+
+2019-03-21 Florian Leeber
+
+        * Merge pull request #8 from ubports/xenial_-_rm-cache (37a6bd0)
+
+2019-03-17 Rodney Dawes
+
+        * Improved error handling. (96edccd)
+
+2019-03-14 Rodney Dawes
+
+        * Remove app cache dir when removing app. (28448df)
+
+2018-10-08 trisimix
+
+        * Added LICENSE (#3) (071e352)
+
+2018-01-08 Dan Chapman
+
+        * Imported to UBports (28b9c13)
+
+2017-06-07 Bileto Bot
+
+        * Releasing 0.4.46+17.10.20170607.3-0ubuntu1 (bfbfb3e)
+        * Use the correct overlayfs module name for the chroot configuration.
+          (LP: #1696402) (faab828)
+        * Rename the python package this installs from click to
+          click_package. (LP: #1693226) (18c1c9a)
+
+2017-06-07 Sergio Schvezov
+
+        * helper to modprobe overlay (655ae2e)
+        * Use the correct overlayfs module name for the chroot configuration
+          (3da9c18)
+
+2017-06-07 Test User
+
+        * change back to unreleased (0352110)
+
+2017-06-06 Test User
+
+        * fix pep8 line length in test (c8d84c5)
+        * fix expected exception for verification tests (ef7bf26)
+        * adt fix (7fc96ee)
+
+2017-06-01 Sergio Schvezov
+
+        * Remove unnecessary conflict (bec4ed5)
+        * revert pk change (3517306)
+
+2017-05-26 Sergio Schvezov
+
+        * Rename the python package this installs from click to
+          click_package. (1198550)
+
+2016-09-16 Bileto Bot
+
+        * Releasing 0.4.45.1+16.10.20160916-0ubuntu1 (3aa69f8)
+        * Kill gpg-agent (if possible) after running debsigs in integration
+          tests.;  Copy integration test GPG keyring to a temporary
+          directory so that the   GPG agent socket name doesn't end
+          up being too long. (c1567b8)
+
+2016-09-16 Colin Watson
+
+        * Copy integration test GPG keyring to a temporary directory so that
+          the GPG agent socket name doesn't end up being too long.
+          (0bb895f)
+        * Kill gpg-agent (if possible) after running debsigs in integration
+          tests. (ee932c3)
+        * merge lp:click (71dd599)
+
+2016-08-28 Bileto Bot
+
+        * Releasing 0.4.45+16.10.20160828.1-0ubuntu1 (5bf14fd)
+        * Emit more debugging information when
+          libclickpreload/libgimockpreload   fail.;  Preload
+          __xmknod rather than mknod (LP: #1615757).;  Stop the test
+          suite leaving spurious empty /tmp/gimock* directories
+          around.;  Remove stray blank line from
+          click_package_install_hooks test preload   annotations.
+          Link libgimockpreload properly against libclick and
+          several other   libraries, and use -Wl,--no-as-needed to
+          stop the linker discarding   references to libraries that
+          will be used via dlsym.;  Initialise real_* pointers in
+          libgimockpreload more reliably.;  Export
+          click_get_user_home for the benefit of the test suite.
+          Fix click_get_user_home mocks to return bytes rather than
+          text, avoiding   obscure crashes in the test suite.;  Fix
+          builds on xenial and earlier: build-depending on
+          libpackagekit-glib2-dev (...) | base-files isn't resolved
+          properly by   apt, but we can just build-depend on
+          libpackagekit-glib2-dev and let the   rest of the build
+          machinery disable use of PackageKit if it's 1.0.0 or
+          newer. (0c437c9)
+
+2016-08-28 Colin Watson
+
+        * Fix builds on xenial and earlier: build-depending on
+          libpackagekit-glib2-dev (...) | base-files isn't resolved
+          properly by apt, but we can just build-depend on
+          libpackagekit-glib2-dev and let the rest of the build
+          machinery disable use of PackageKit if it's 1.0.0 or
+          newer. (43b2ace)
+        * Fix click_get_user_home mocks to return bytes rather than text,
+          avoiding obscure crashes in the test suite. (0487297)
+        * Export click_get_user_home for the benefit of the test suite.
+          (ada2ea3)
+        * Initialise real_* pointers in libgimockpreload more reliably.
+          (a26916e)
+        * Link libgimockpreload properly against libclick and several other
+          libraries, and use -Wl,--no-as-needed to stop the linker
+          discarding references to libraries that will be used via
+          dlsym. (6d887c4)
+        * Update changelog. (63c73c6)
+        * Remove stray blank line from click_package_install_hooks test
+          preload annotations. (d387e79)
+        * Emit more debugging information when libgimockpreload fails.
+          (c44789a)
+        * Stop the test suite leaving spurious empty /tmp/gimock* directories
+          around. (8c469c7)
+        * Add missing newline to error message. (6959f88)
+
+2016-08-26 Colin Watson
+
+        * Preload __xmknod rather than mknod (LP: #1615757). (5e17da8)
+        * Emit more debugging information when libclickpreload fails.
+          (22e6539)
+
+2016-08-11 Bileto Bot
+
+        * Releasing 0.4.44+16.10.20160811.1-0ubuntu1 (697b35a)
+
+2016-08-11 Colin Watson
+
+        * Handle new policy URL in debsig-verify 0.15. (LP: #1608281)
+          (51fd7c5)
+        * Handle new policy URL in debsig-verify 0.15. (920e6c4)
+
+2016-08-10 Bileto Bot
+
+        * Releasing 0.4.44+16.10.20160810.1-0ubuntu1 (3232c96)
+
+2016-08-10 Timo Jyrinki
+
+        * Add --disable-packagekit to the autopkgtests. (6b6f11f)
+        * Add --disable-packagekit to the autopkgtests. (bf457ca)
+
+2016-08-10 Bileto Bot
+
+        * Releasing 0.4.44+16.10.20160810-0ubuntu1 (c13bb7f)
+
+2016-08-10 Timo Jyrinki
+
+        * Don't use @ in debian/tests/control since packagekit plugin is
+          still in debian/control. (346279a)
+        * Don't use @ in debian/tests/control since packagekit plugin is
+          still in debian/control. (d983778)
+
+2016-08-09 Bileto Bot
+
+        * Releasing 0.4.44+16.10.20160809.1-0ubuntu1 (f924d0d)
+
+2016-08-09 Antti Kaijanmäki
+
+        * As PK 1.0 does not support plugins anymore, drop the click plugin.
+          (LP: #1470655, #1496292) (65204d7)
+
+2016-04-28 Colin Watson
+
+        * Chase redirection for click.readthedocs.org ->
+          click.readthedocs.io. (7b503b1)
+
+2016-02-12 Colin Watson
+
+        * Fix python3-click-package -> python3-click Replaces version (LP:
+          #1544776). (fbcd348)
+        * merge lp:click (fd750d6)
+
+2016-02-10 Antti Kaijanmäki
+
+        * fix build-deps (3ede8a7)
+
+2016-02-09 Antti Kaijanmäki
+
+        * simplify debian/packagekit-check (88656fd)
+        * return libpackagekit-glib2-dev build-dep (4c6d34c)
+
+2016-02-05 Antti Kaijanmäki
+
+        * tweak debian/packagekit-check to ignore >=1.0.0 (89119b5)
+
+2016-02-03 CI Train Bot
+
+        * Releasing 0.4.43+16.04.20160203-0ubuntu1 (c8470d7)
+
+2016-02-03 Colin Watson
+
+        * Click 0.4.43: More autopkgtest fixes, and rename python3-click out
+          of the way of the PyPI "click" package. Approved by: Colin
+          Watson (04ac0e8)
+        * bump version to 0.4.43 (bc25a6f)
+        * [r=mvo] Rename python3-click back to its original name of
+          python3-click-package to get it out of the way of PyPI's
+          "click" package, conflicting with python3-click and
+          python3-click-cli; this is unfortunate and non-compliant
+          with the Python policy, but from that point of view the
+          package that owns the name in the upstream packaging
+          system ought to win. (5ece971)
+
+2015-12-29 Colin Watson
+
+        * Fix TestChroot.test_exists_no integration test to be more
+          meaningful rather than just testing a command syntax
+          error. (789d3a5)
+        * Skip chroot integration tests on architectures that were not
+          present in 14.04. (4d35805)
+        * Remove unused import. (d4b5310)
+        * Simplify skipping. (f3f29a9)
+        * Fix test skipping in build_core_apps integration tests. (06b92a1)
+        * merge lp:click (ffeadd5)
+
+2015-12-29 CI Train Bot
+
+        * Releasing 0.4.42+16.04.20151229-0ubuntu1 (bc5913f)
+
+2015-12-29 Colin Watson
+
+        * Click 0.4.42: Fix autopkgtests on non-x86 architectures. Approved
+          by: Colin Watson (7be4eba)
+        * Skip build_core_apps integration tests on architectures that lack
+          support for native- or cross-compiling for armhf.
+          (0302a7b)
+        * Fix indentation. (3c52d29)
+        * chroot: Point debootstrap at ports.ubuntu.com for non-primary
+          architectures. (6c5f658)
+
+2015-12-15 Colin Watson
+
+        * Rename python3-click back to its original name of
+          python3-click-package to get it out of the way of PyPI's
+          "click" package, conflicting with python3-click and
+          python3-click-cli; this is unfortunate and non-compliant
+          with the Python policy, but from that point of view the
+          package that owns the name in the upstream packaging
+          system ought to win. (54c2e64)
+        * merge lp:click (d1eb52a)
+
+2015-12-11 CI Train Bot
+
+        * Releasing 0.4.41+16.04.20151211-0ubuntu1 (a0ba27b)
+
+2015-12-11 Colin Watson
+
+        * Click 0.4.41: Various build and test fixes; avoid a couple of
+          corner cases that cause click itself to fail to install.
+
+          Fixes: #1486841, #1510015, #1522608 Approved by: Colin
+          Watson (7e2d85d)
+        * [r=cjwatson] Set Vcs-* fields to the actual development branch.
+          (0d86272)
+        * merge 0.4.40+15.10.20151006-0ubuntu1.1 (2daf8e7)
+        * import 0.4.40+15.10.20151006-0ubuntu1.1 (e0ca420)
+        * [r=cjwatson] Require specific Click version, to avoid gi warnings
+          that fail test-suite. (a913117)
+
+2015-12-03 Dimitri John Ledkov
+
+        * Set Vcs-* fields to the actual development branch. (d4bbe83)
+        * Require specific Click version, to avoid gi warnings that fail
+          test-suite. (1642aab)
+
+2015-11-24 Colin Watson
+
+        * Drop use of apt_pkg from click.install, since it's no longer needed
+          there (LP: #1510015). (b57a9db)
+        * Take evasive action in case the conflicting "click" package has
+          been installed locally from PyPI (LP: #1486841). (a6f015a)
+
+2015-10-15 Colin Watson
+
+        * [r=mvo] Forbid installing packages with data tarball members whose
+          names do not start with "./" (LP: #1506467). (071a36c)
+        * Forbid installing packages with data tarball members whose names do
+          not start with "./" (LP: #1506467). (8c40949)
+        * Fix test failures under Python 2. (13c4010)
+        * Fix spurious test_sync_without_user_db test failure. (da4b87a)
+        * merge lp:click (59b59c4)
+
+2015-10-06 CI Train Bot
+
+        * Releasing 0.4.40+15.10.20151006-0ubuntu1 (d1d7bc6)
+
+2015-10-06 Kyle Fazzari
+
+        * New release 0.4.40 that contains the bugfixes: - Don't follow
+          symlinks when stat()ing files. (LP: 1496976) - Garbage
+          collect old user registrations. (LP: #1479001)
+          Fixes:
+          #1219912, #1324853, #1330770, #1379657, #1393698, #1418086
+          Approved by: Rodney Dawes (bf835ca)
+        * Fix failing chroot test. (ba901e3)
+        * Fix failing chroot test. (e5d8306)
+        * Garbage collect old user registrations. (10319b4)
+        * Move version comparisons to dpkg --compare-versions. (4a792aa)
+        * Garbage collect old user registrations. (3d04db8)
+
+2015-10-05 Colin Watson
+
+        * Tidy shell slightly. (6c0879f)
+        * [r=cjwatson] Add and pin up the overlay PPA for vivid. (5334df8)
+
+2015-10-05 Zoltán Balogh
+
+        * remove code duplication (5470207)
+
+2015-10-02 Zoltán Balogh
+
+        * Ehh, silly fi there (bff57ae)
+        * Address comments from cjwatson (e78f499)
+
+2015-09-26 Zoltán Balogh
+
+        * fix the condition (cf607b0)
+        * Add Overlay PPA only to 15.04 targets (7d4d890)
+        * Add Overlay PPA only to 15.04 targets (864ef00)
+        * Remove wrong changelog entry (af2cdb1)
+        * Remove wrong changelog entry (751d246)
+        * Change silo.pref to stable-phone-overlay.pref and make pep8 happy
+          (84978db)
+        * Change silo.pref to stable-phone-overlay.pref and make pep8 happy
+          (2770673)
+
+2015-09-25 Zoltán Balogh
+
+        * Add and pin up the Overlay PPA (0cc1c09)
+
+2015-09-18 Michael Vogt
+
+        * Don't follow symlinks when stat()ing files. (LP: 1496976) (cecf1fc)
+        * merged lp:click (d9425e7)
+
+2015-09-17 Chris Townsend
+
+        * Don't follow symlinks when stat()ing files. (c1f60f8)
+
+2015-07-02 CI Train Bot
+
+        * Releasing 0.4.39.1+15.10.20150702-0ubuntu1 (d75b6ec)
+        * lp:~mvo/click/lp1456328-15.10-devlibs:   - add
+          ubuntu-sdk-15.10-dev1   - remove ubuntu-core-15.04-dev1
+          (e17cf07)
+
+2015-07-02 Michael Vogt
+
+        * .bzr-builddeb/default.conf: use split = true (98e1b23)
+        * debian/source/format: move to 3.0 (quilt) (01f7971)
+        * debian/control: drop X-Auto-Uploader: no-rewrite-version (d426375)
+        * lp:~mvo/click/lp1456328-15.10-devlibs:   - add
+          ubuntu-sdk-15.10-dev1   - remove ubuntu-core-15.04-dev1
+          (fb1ca9e)
+        * merged lp:click (ec3b649)
+
+2015-06-30 Michael Vogt
+
+        * add ubuntu-sdk-15.10-dev1, remove ubuntu-core-15.04-dev1 (57b8fc0)
+
+2015-05-07 CI Train Bot
+
+        * Releasing 0.4.39 (ccd7ed0)
+        * handle "IP NOT FOUND" error (LP: #1433234);  switch the default
+          click chroot framework to ubuntu-sdk-14.04 (8a04b30)
+
+2015-05-01 Michael Vogt
+
+        * switch the default click chroot framework to ubuntu-sdk-14.04
+          (bd028b4)
+        * merged lp:~3v1n0/click/geoip-not-found-fix (c1b7044)
+
+2015-03-17 Marco Trevisan (Treviño)
+
+        * Chroot: return CountryCode only if available (762d238)
+
+2015-03-11 Michael Vogt
+
+        * merged lp:click (87fecb2)
+        * merged lp:~seb128/click/initctl-not-there (ae27925)
+        * merged lp:click (877617a)
+
+2015-03-10 CI Train Bot
+
+        * Releasing 0.4.38.5 (84b67f9)
+
+2015-03-10 Sebastien Bacher
+
+        * Don't try to replace initctl if it's not there
+          Fixes: #1430436
+          Approved by: Colin Watson (44fef40)
+        * Update the changelog version (e6b86fe)
+        * Don't try to replace initctl if it's not there (f75ebfe)
+
+2015-02-26 CI Train Bot
+
+        * Releasing 0.4.38.4 (02deadd)
+
+2015-02-26 Michael Vogt
+
+        * Click 0.4.38: stop apps when uninstalling them, fix crash on empty
+          db, add --ignore option to click build, fix framework
+          validation for snappy frameworks
+          Fixes: #1219912,
+          #1324853, #1330770, #1379657, #1393698, #1418086 (dc63f43)
+        * merged lp:~mvo/click/fix-autopkgtest (2c48b6e)
+        * fix autopkgtest failure (missing default argument) (29a4366)
+
+2015-02-24 Michael Vogt
+
+        * run debian/packagekit-check with "sh" as something in jenkins made
+          it mode 0644 (95cb704)
+        * bump version number (0b4e05c)
+        * bump version number (065bdb7)
+        * merged lp:~mvo/click/fix-options-ignore (c47d08b)
+        * click/commands/build.py: init ignore list correctly (6d3380c)
+
+2015-02-23 Michael Vogt
+
+        * lp:~mvo/click/fix-multiple-framework-validation:   - fix
+          framework validation for snappy (bd02ddc)
+        * lp:~mvo/click/lp1219912-build-exclude:   - add a new --ignore
+          option to click {build,buildsource}     (LP: #1219912)
+          (8349991)
+        * lp:~mvo/click/dont-crash-for-empty-db:   - Do not crash when no
+          database configuration is used and
+          Click.DB.{get,props.overlay,gc,ensure_ownership} are
+          called. (4b76656)
+        * lp:~mvo/click/lp1232130-kill-on-remove-2:   - When uninstalling a
+          app, stop it if its running (LP: #1232130) (a4ca2d5)
+        * merged lp:click (8e979f3)
+
+2015-02-18 Michael Vogt
+
+        * address review comments from barry (a5c7000)
+
+2015-02-13 CI Train Bot
+
+        * Releasing 0.4.37 (8617eb2)
+
+2015-02-13 Zoltan Balogh
+
+        * Click 0.4.37 (skipping 0.4.36 to workaround version conflicts in
+          PPAs): bugfixes, geoip based chroot mirror selection
+
+          Fixes: #1324853, #1330770, #1379657, #1393698, #1418086
+          (0979e84)
+
+2015-02-13 Michael Vogt
+
+        * skip 0.4.36 version and go straight to 0.4.37 (LP: #1418086)
+          (7844e7b)
+        * Remove qt5-qmake-arm-linux-gnueabihf from the fw definition as it
+          is listed in the ubuntu-sdk-libs-tools and make the use of
+          local mirrors conditional. (116b4bc)
+
+2015-02-13 Zoltán Balogh
+
+        * Remove qt5-qmake-arm-linux-gnueabihf from the fw definition and
+          make the use of local mirrors conditional (eef63d7)
+
+2015-01-23 Zoltan Balogh
+
+        * merge lp:~bzoltan/click/vivid-transition_mirrors with some tweaks
+          (4853dc6)
+
+2015-01-21 Michael Vogt
+
+        * click/chroot.py:   - use string.format() for chroot TARGET
+          selection (9aa7502)
+        * lp:~mvo/click/lp1394256-run-user-hooks-on-remove-too:   - Run the
+          click remove user hooks for all logged in users. (5f79566)
+        * merged lp:~mvo/click/chroot-15.04-multiarch and fix changelog
+          (bb56d1c)
+        * add qt5-qmake-arm-linux-gnueabihf to chroot (LP: #1393698)
+          (2012217)
+        * lp:~mvo/click/lp1394256-run-user-hooks:   - ensures that click
+          user hooks are run for all logged in users when     click
+          is used with "--all-users". (b4d70cd)
+        * lp:~mvo/click/dpkg-less-verbose:   - do not show dpkg output on
+          install unless --verbose is used (ffc0398)
+        * lp:~mvo/click/do-not-crash-in-build-on-broken-symlinks:   - do
+          not crash when building a click package that contains
+          broken     symlinks (b044843)
+        * lp:~mvo/click/no-error-no-missing-systemctl:   - fix a spurious
+          error message on systems without systemctl (a81eba5)
+
+2015-01-19 Michael Vogt
+
+        * do not crash if a snap contains a broken symlink (4130ca4)
+
+2014-12-10 Michael Vogt
+
+        * debian/click.postinst: simplify, thanks to Colin Watson (bab88b0)
+        * Fix checking if the same base-name is used with different
+          base-versions. The previous check was too simplicist and
+          assumed there is always only a single base-name for
+          frameworks (which is the case in the ubuntu-touch world
+          but not in the snappy world). (e917456)
+
+2014-12-09 Michael Vogt
+
+        * debian/click.postinst: do not show spurious error when systemctl is
+          not available (e73662c)
+
+2014-12-05 Michael Vogt
+
+        * also run user remove hooks for all logged in users and refactor the
+          code (f9ea4f4)
+
+2014-12-04 Michael Vogt
+
+        * pep8 (3af6250)
+
+2014-12-03 Michael Vogt
+
+        * do not show dpkg output by default (45a2299)
+        * click/chroot.py: add ubuntu-sdk-libs-tools for the native tools
+          like cmake/python (9e31f67)
+        * click/chroot.py: we also need the native python3 (f1ca0f7)
+        * click/chroot.py: fix url (0c1aed8)
+        * click/chroot.py: explicitely add oxideqt-codecs-extra to help the
+          apt resolver (cf9db94)
+
+2014-12-02 Michael Vogt
+
+        * add qt5-qmake-arm-linux-gnueabihf to chroot (LP: #1393698)
+          (f2c97ae)
+
+2014-11-19 Michael Vogt
+
+        * lib/click/user.vala: do not fail if no logind is running (ef27e91)
+        * lib/click/user.vala: run_user_hooks_for_all_logged_in_users() allow
+          old_version to be NULL (f6bf2fa)
+        * run user hooks for all logged in users when --all-users is used
+          (80c45f9)
+
+2014-11-14 Michael Vogt
+
+        * merged  lp:~ps-jenkins/click/ubuntu-vivid-proposed (f18271b)
+
+2014-11-14 CI bot
+
+        * Releasing 0.4.35 (9b115b8)
+
+2014-11-14 Michael Vogt
+
+        * Click 0.4.35: chroot fix for /run/shm, add ubuntu-core-15.04-dev
+          framework
+          Fixes: 1324853, 1330770, 1379657 Approved by: PS
+          Jenkins bot (e712f24)
+        * lp:~mvo/click/add-run-shm:   - Ensure /run/shm is available in a
+          click chroot;  lp:~mvo/click/ubuntu-core-framework:   -
+          Add "ubuntu-core-15.04-dev1" click chroot (0c36201)
+        *  (3c7623b)
+
+2014-11-13 Michael Vogt
+
+        * merged lp:click/devel and resolved conflicts (42d3df5)
+
+2014-11-04 Michael Vogt
+
+        * schroot/fstab: add missing /run/shm to fix crash when dri3 apps are
+          run from within the chroot (c9d2372)
+
+2014-11-03 Michael Vogt
+
+        * merge the 0.4.34.2 release (e4a8f56)
+
+2014-11-03 CI bot
+
+        * Releasing 0.4.34.2 (de7aed0)
+
+2014-11-03 Michael Vogt
+
+        * Click 0.4.34: systemd fixes, chroot improvements, sdk updates,
+          packaging improvements
+          Fixes: 1324853, 1330770, 1379657
+          Approved by: PS Jenkins bot, Colin Watson (c64a4f0)
+        * click/tests/Makefile.am:   - add --libtool to g-ir-scanner so
+          that it uses the generated     libtool instead of the
+          system libtool which is now part of     the libtool-bin
+          package in vivid (fa8daf7)
+        * bump version number for citrain (8080f91)
+        * click/tests/preload.h:   - replace deprecated "Attributes:" with
+          annotations on the     identifier (473a3ca)
+
+2014-10-30 Michael Vogt
+
+        * add ubuntu-sdk-15.04 based on ubuntu-sdk-libs/ubuntu-sdk-libs-dev
+          (b97a1f5)
+        * click/chroot.py: remove cmake-extras again from 14.04 as its not
+          available there (19abd27)
+        * Adds internationalization tools and CMake macros required by the
+          new Qt Creator app and scope templates that provide
+          internationalization code. (cb2efe7)
+        * Allow "click chroot install" and "click chroot upgrade" to operate
+          on sessions. (e91645e)
+
+2014-10-30 David Planella
+
+        * Added chroot packages containing i18n tools and cmake macros
+          (b537c15)
+
+2014-10-16 Michael Vogt
+
+        * click/chroot.py: add ubuntu-core-14.10 framework (a8c6869)
+
+2014-10-14 Colin Watson
+
+        * normalise whitespace (dbc40bb)
+        * [r=cjwatson] Use dh-systemd to enable click system and user hook
+          integration. (07a7c18)
+
+2014-10-13 Colin Watson
+
+        * Allow "click chroot install" and "click chroot upgrade" to operate
+          on sessions. (266a466)
+        * [r=cjwatson] Include Canonical's cmake-extras project in the
+          schroot. (bc9e565)
+
+2014-10-10 Michael Vogt
+
+        * debian/click.postinst: enable click-user-hooks.service for all
+          users (7e31c55)
+        * use dh-systemd to ennable the click system hook integration
+          (f3b8de2)
+
+2014-10-08 Michael Vogt
+
+        * set PATH in click_remove_package () (3952097)
+
+2014-10-07 Michael Vogt
+
+        * [r=mvo] Make "click info" always try opening the input file as a
+          package and only try to interpret it as a file in an
+          installed package if that fails, rather than guessing by
+          the input file extension. (30949c1)
+
+2014-10-07 Colin Watson
+
+        * Make "click info" always try opening the input file as a package
+          and only try to interpret it as a file in an installed
+          package if that fails, rather than guessing by the input
+          file extension. (acc59ed)
+
+2014-10-02 Michael Vogt
+
+        * typo (89dcda0)
+        * strip read env (dcea5ad)
+        * fix array handling (619fd6e)
+        * add code to talk to the users dbus session (d1668fa)
+        * Really stop apps on removal of a click package (cd8f59e)
+        * merged lp:click/devel (d25b0c1)
+
+2014-10-01 Colin Watson
+
+        * [r=cjwatson] Demote ubuntu-app-launch-tools from a click recommends
+          to a suggests. (20a5a81)
+        * merge 0.4.33 release (06c69a4)
+
+2014-09-30 Michael Vogt
+
+        * debian/control: remote ubuntu-app-launch-tools (9ad5d92)
+        * merged lp:click/devel (d3dec84)
+
+2014-09-29 CI bot
+
+        * Releasing 0.4.33 (df42176)
+
+2014-09-29 Colin Watson
+
+        * Click 0.4.33: Add scope APIs; fix GC; add "click chroot --name.
+          make "click destroy" more robust; stop apps when
+          uninstalling them.
+          Fixes: 1324853, 1330770 Approved by:
+          Colin Watson (b777384)
+        * typo (882005c)
+        * [r=cjwatson] Add new "click framework {info,get-field}"
+          subcommands. (8d0cb4e)
+        * make_file_with_content: Actually honour mode. (4c8e03a)
+        * Tidy up whitespace. (491e13e)
+        * [r=cjwatson] Stop apps if necessary when uninstalling them.
+          (ae4d172)
+
+2014-09-29 Michael Vogt
+
+        * pep8 fixes (1989f73)
+        * merged lp:click/devel (17c86bb)
+        * merge lp:click/devel (9f6a4a9)
+        * merged lp:click/devel (2945a85)
+        * merged lp:click/devel (298c6fd)
+
+2014-09-29 Colin Watson
+
+        * [r=cjwatson] Make click destroy more robust by umnounting any
+          mounted filesystem inside the schroot first. (3b86cab)
+
+2014-09-26 Colin Watson
+
+        * [r=mvo] Add new -n/--name option to "click chroot", defaulting to
+          "click". (be2871b)
+        * Clarify test_exists_different_name. (7fcab5d)
+        * Add docstring for TestChrootName. (880ca39)
+
+2014-09-25 Colin Watson
+
+        * Add new -n/--name option to "click chroot", defaulting to "click"
+          (LP: #1364327). (a4a06f1)
+
+2014-09-24 Colin Watson
+
+        * Fix regression building ubuntu-sdk-14.04 chroot: that framework
+          needs libboost1.54-dev, not libboost1.55-dev. (bc7a2c9)
+
+2014-09-24 Pete Woods
+
+        * Include Canonical's cmake-extras project in the schroot (93c0de3)
+
+2014-09-19 Colin Watson
+
+        * note fix for LP: #1370727 (6b651ca)
+
+2014-09-12 Colin Watson
+
+        * [r=mvo] Fix garbage-collection to actually work properly, and run
+          it on system startup. (f6c2561)
+        * Don't garbage-collect "current" symlinks. (64d07ae)
+
+2014-09-10 Colin Watson
+
+        * typo (1eb35ac)
+        * Run garbage-collection immediately before running system hooks on
+          system startup (LP: #1342858). (fae1a30)
+        * Rearrange garbage-collection to remove versions of packages that
+          have no user registrations and are not running, rather
+          than using the artificial @gcinuse registration which
+          never really worked properly. (3cf70ac)
+        * Warn that "click install" without a registration may result in
+          later garbage-collection. (d746908)
+        * [r=cjwatson] Add scope-facing APIs to chroot build. (882c016)
+        * merge 0.4.32.1 release (9ec02b5)
+
+2014-09-10 Pete Woods
+
+        * Add scope-facing APIs to chroot build. (58a5e59)
+
+2014-09-09 Pete Woods
+
+        * Add scope-facing libraries (a9d2bd6)
+
+2014-09-09 CI bot
+
+        * Releasing 0.4.32.1 (ea4fe71)
+
+2014-09-09 Daniel Holbach
+
+        * Click 0.4.32: test improvements/cleanup, re-enable signature
+          checking, optionally call click-review after build.
+          Fixes:
+          1324853, 1330770 Approved by: PS Jenkins bot, Colin Watson
+          (d776a70)
+
+2014-09-09 Colin Watson
+
+        * [r=cjwatson] Fix autopkgtests (57df212)
+        * merge 0.4.32 release (e9aeb43)
+
+2014-09-09 Michael Vogt
+
+        * update changelog (7053432)
+        * debian/tests/run-tests.sh: use the right configure parameters
+          (4aee04d)
+        * fix adt test failure by ensure that the configure generated python
+          files get created before the tests run (9b25126)
+
+2014-09-08 CI bot
+
+        * Releasing 0.4.32 (74acd5b)
+
+2014-09-08 Daniel Holbach
+
+        * Click 0.4.32: test improvements/cleanup, re-enable signature
+          checking, optionally call click-review after build.
+          Fixes:
+          1324853, 1330770 Approved by: PS Jenkins bot, Colin Watson
+          (cc41e17)
+
+2014-09-05 Michael Vogt
+
+        * Make the PackageKit plugin honour the
+          PK_TRANSACTION_FLAG_ENUM_ONLY_TRUSTED flag.
+          Fixes:
+          https://bugs.launchpad.net/bugs/1360582. (de1a202)
+
+2014-09-05 Colin Watson
+
+        * typo (64f1c88)
+
+2014-09-05 Daniel Holbach
+
+        * Run click-review from click-reviewers-tools as part of the "click
+          build" run. Offer --no-validate option. (68631c1)
+
+2014-09-05 Pete Woods
+
+        * Add scope-facing libraries (c6b77c1)
+
+2014-09-05 Daniel Holbach
+
+        * fix superfluous empty line (332317f)
+        * fix pep8 issue, fix indentation (f3f5e4c)
+        * add comment explaining why retcode needs to be 0 (3b3b3fc)
+        * readd missing changelog entry (4b8247e)
+        * merge trunk (73eb9da)
+        * move success message to very end, so SDK can make use of it
+          (e03da7b)
+
+2014-09-05 Michael Vogt
+
+        * fix indent (569287e)
+        * merge lp:click/devel, resolve conflicts (a2a6fd4)
+        * add missing changelog (6e786e4)
+
+2014-09-05 Colin Watson
+
+        * changelog for r510 (58487e4)
+
+2014-09-05 Daniel Holbach
+
+        * merge from trunk, resolve conflicts in changelog (33ba04e)
+
+2014-09-05 Michael Vogt
+
+        * Add more integration tests for "click {list,register,verify,info}".
+          (9f52a93)
+
+2014-09-05 Daniel Holbach
+
+        * fix option logic, use retcode 1 if click-review fails (cb35559)
+
+2014-09-05 Michael Vogt
+
+        * click/tests/integration/test_info.py: trivial pep8 fix (d6504a7)
+        * merged lp:click/devel (7e6fa54)
+        * merged lp:click/devel to get pep8 fixes in (efe036c)
+
+2014-09-05 Colin Watson
+
+        * Move integration tests to a location where they won't end up being
+          installed into inappropriate places on the system module
+          path (LP: #1337696).
+          Fixes:
+          https://bugs.launchpad.net/bugs/1337696. (cf450f0)
+        * fix encoding (5d99ad6)
+
+2014-09-04 Colin Watson
+
+        * Rearrange integration test skip logic to do everything in
+          setUpClass rather than via decorators, for clarity of
+          ordering. (dc9323a)
+
+2014-09-04 Daniel Holbach
+
+        * set version number to 0.4.32 (a1cfaaa)
+        * add Suggests for click-reviewers-tools (a9c0c0b)
+        * Run click-review after a successful build of a click package. Offer
+          --no-validate as an option (34e4c4f)
+        * Run click-review after a successful build of a click package. Offer
+          --no-validate as an option (967d0c1)
+
+2014-09-04 Michael Vogt
+
+        * update tests (38bbd5c)
+
+2014-09-04 Colin Watson
+
+        * Use is_root helper in another place. (a393733)
+        * Call skipTest in ClickTestCase.setUp rather than using
+          allow_integration helper everywhere. (ddd7128)
+        * More PEP-8 failures. (182ef49)
+        * merge trunk (7227e5a)
+
+2014-09-04 Michael Vogt
+
+        * more com.ubuntu. -> com.example. renaming (aed1a85)
+        * fix review comments (thanks Colin!) (743b80e)
+
+2014-09-02 Michael Vogt
+
+        * merged from lp:click/devel and resolve conflicts (32570a0)
+        * re-sync debian/changelog with the archive (72e32e9)
+
+2014-08-26 Michael Vogt
+
+        * Make the packagekit click plugin use --allow-unauthenticated to
+          unbreak the SDK. (cad7c49)
+
+2014-08-25 Michael Vogt
+
+        * resurrect r497 to unbreak the SDK (1dc65f2)
+        * pk-plugin/pk-plugin-click.c: honor
+          PK_TRANSACTION_FLAG_ENUM_ONLY_TRUSTED (6f55c28)
+
+2014-08-25 Colin Watson
+
+        * merge 0.4.31.2 release (61a7aaf)
+
+2014-08-22 CI bot
+
+        * Releasing 0.4.31.2 (84cdf8f)
+
+2014-08-22 Michael Vogt
+
+        * Click 0.4.31: "click info <file in unpacked package>", and basic
+          support for package signing.
+          Fixes: 1324853, 1330770
+          (b8d0c40)
+        * bump version number (1bce8fd)
+        * tests/integration/: fix tests by adding --allow-unauthenticated
+          (fc4333f)
+
+2014-08-20 Michael Vogt
+
+        * bump version number for citrain (8bce9f7)
+        * trivial pep8 fix (2167cd3)
+        * click/install.py: make DebsigVerify.availalble a classmethod as
+          properties for classes are not easily supported in python
+          (c4f7ac5)
+
+2014-08-19 Michael Vogt
+
+        * revert r497 as all clicks from the ubuntu store are signed now
+          (68d923e)
+        * click/tests/test_install.py: fix test (d92bef7)
+
+2014-08-12 Colin Watson
+
+        * Pass --allow-unauthenticated to "click install" from the PackageKit
+          plugin for now.  Revert this when a keyring and signing
+          policies are in place on the phone images and confirmed to
+          work. (1de2229)
+        * [r=cjwatson] Add support for click package gpg signatures (LP:
+          #1330770). (6f69050)
+        * Ugly hack to get coverage reporting working again with gcovr 3.1.
+          (ef6bcec)
+        * [r=cjwatson] Add "click info" interface to get manifest
+          corresponding to file in installed package (LP: #1324853).
+          (ffcce5d)
+        * Add integration test for "click info <file in unpacked package>".
+          (4fcdcc3)
+
+2014-08-08 Colin Watson
+
+        * Merge lp:click/devel. (a628072)
+        * whitespace; move standard library imports to top level (5f76a04)
+
+2014-08-08 Michael Vogt
+
+        * merged with lp:click/devel (d3e51b6)
+
+2014-08-07 Michael Vogt
+
+        * fix integration tests and add --allow-unauthenticated to click
+          audit too (7d72226)
+        * address Colins review comments (thanks!) (7a717ad)
+
+2014-08-07 Colin Watson
+
+        * merge 0.4.30 release (0ef1f47)
+
+2014-08-06 CI bot
+
+        * Releasing 0.4.30 (58c9667)
+
+2014-08-06 Michael Vogt
+
+        * Click 0.4.30: Unit test improvements; fix upgrade if packages are
+          present for removed users; flesh out 14.10 chroots.
+          Fixes:
+          1334611 (ef9804e)
+
+2014-08-07 Colin Watson
+
+        * Restore qt5-default:TARGET to 14.10, apparently removed
+          unintentionally. (00347a5)
+        * [r=cjwatson] Add a set of APIs to the 14.10 frameworks.  Add
+          ubuntu-ui-toolkit-doc to all frameworks. (9fb7168)
+
+2014-08-05 Zoltán Balogh
+
+        * Add the Setting API from the Qt.Labs (5585076)
+
+2014-08-04 Zoltán Balogh
+
+        * remove line duplication (5296e08)
+        * Install the UITK docs with the relevant fw API documentation to the
+          chroots (7a3c214)
+
+2014-08-03 Colin Watson
+
+        * pep8 (9d052b4)
+
+2014-07-22 Zoltán Balogh
+
+        * Remove packages from the 14.10 fw what are pulled by any package
+          already on the list (e5f4053)
+        * Remove unnecessary TARGET for qtdeclarative5-dev-tools in 14.10 fw
+          package list (69a2858)
+        * Remove duplications from the 14.10 fw package list (b57e3fd)
+        * Sort 14.10 fw package list (4f5f9c8)
+        * Remove tab indentation (fc8f0e1)
+
+2014-07-22 Michael Vogt
+
+        * fix pep8 error (61d0482)
+        * make click chroot destroy more robust (63cdda5)
+
+2014-07-22 Zoltán Balogh
+
+        * Added a set of APIs to the 14.10 frameworks (4fd7d4d)
+
+2014-07-15 Michael Vogt
+
+        * tests/integration/test_signatures.py: cleanup (0c24bfc)
+        * click/tests/test_install.py: fix test when no debsig-verify is
+          installed (b463fec)
+        * add test that tries to trick debsig-verify by prepending a valid
+          sig with a key that is not in the keyring (60c647a)
+        * refactor for DRY (8021b46)
+        * ensure that replacing data.tar.gz with data.tar.bz2 is noticed
+          (a05b9d5)
+        * add a test that prepends a data.tar.bz2 to ensure we can not inject
+          data members without getting caught (c41152d)
+        * cleanup and add test for altered ar members (fcd8d8f)
+
+2014-07-14 Michael Vogt
+
+        * tests/integration/helpers.py: cleanup click_install() (ea9301f)
+        * add integration test for register (f28626f)
+        * add click_install() helper for the integration tests (acfc311)
+        * add integration test for click list (6c5c67a)
+        * tests/integration/test_chroot.py: test chroot exists (a348d03)
+        * tests/integration/test_info.py: add test for info for a installed
+          click (b6af00f)
+        * more tests for verify (7ad89de)
+        * add missing unittest for signature verification (95e2ada)
+        * add integration tests with valid signatures (4979150)
+        * refactor the debsig-verify into its own class (3a010c6)
+        * add --allow-unauthenticated (222eefc)
+
+2014-07-11 Michael Vogt
+
+        * Exclude non-existing users from User.get_user_names() (LP:
+          #1334611) (8fb50d1)
+        * lib/click/user.vala: use entry.has_prefix() instead of checking
+          entry[0] (bf19ba2)
+        * add debsig-verify to click.install.ClickInstaller:audit() (bae5085)
+
+2014-07-10 Colin Watson
+
+        * [r=mvo] Add many more unit tests to fill in some gaps in the
+          coverage report. (f622622)
+
+2014-07-09 Colin Watson
+
+        * Fix TestClickSingleDB.test_any_app_running_missing_app to handle
+          the case where ubuntu-app-pid is not on the system path.
+          (24bee40)
+        * Add many more unit tests to fill in some gaps in the coverage
+          report. (269f344)
+        * Don't fail if ping does not exist (as when running the unit tests
+          in an environment without sufficient dependencies to run
+          the integration tests). (4df2125)
+        * Hack around unittest.skipIf decorator ordering, which caused some
+          bits of the integration test framework to try to run
+          without sufficient dependencies installed. (5bc5726)
+        * Use six.with_metaclass for TestBuildCoreApps, so that it doesn't
+          make pyflakes angry when running tests under Python 2.
+          (8808aed)
+
+2014-07-08 Colin Watson
+
+        * Run integration tests more verbosely. (1a8e979)
+        * Update package name for integration tests. (d866e89)
+        * Fix some PEP-8 failures in the integration tests. (6f21952)
+        * Move integration tests to a location where they won't end up being
+          installed into inappropriate places on the system module
+          path (LP: #1337696). (4428b26)
+        * Remove duplicate import. (8c3ae03)
+
+2014-07-07 Colin Watson
+
+        * merge 0.4.29.1 release (4710d07)
+
+2014-07-04 CI bot
+
+        * Releasing 0.4.29.1 (52fad1c)
+
+2014-07-04 Colin Watson
+
+        * Click 0.4.29: Integration test and coverage improvements; handle
+          all -devN frameworks; add qmlscene to chroots. (c2e0ded)
+        * [r=cjwatson] Trivial fix for the current autopkgtest failure.  The
+          ADT environment does not have the USER environment set.
+          (ca03897)
+        * merge 0.4.29 release (14c5c64)
+
+2014-07-04 Michael Vogt
+
+        * tests/integration/test_hook.py: use root if no $USER is set in the
+          test environment (f679a36)
+
+2014-07-03 Michael Vogt
+
+        * lib/click/user.vala: whitelist all pseudo users (42dad08)
+
+2014-07-03 CI bot
+
+        * Releasing 0.4.29 (f5d75ba)
+
+2014-07-03 Colin Watson
+
+        * Click 0.4.29: Integration test and coverage improvements; handle
+          all -devN frameworks; add qmlscene to chroots. (8b07105)
+        * Add integration test for "click hook install". (914b65a)
+
+2014-07-03 Michael Vogt
+
+        * fix TestCase -> ClickTestCase rename (773ad66)
+        * merge lp:click/devel (3486be8)
+
+2014-07-03 Colin Watson
+
+        * Seed runtime target arch SDK app launcher, to enable remote
+          debugging. (3207c35)
+        * Fix a missing TestCase -> ClickTestCase rename in the integration
+          tests. (1799591)
+
+2014-07-02 Michael Vogt
+
+        * tests/integration/test_build_core_apps.py: fixup a missing rename
+          from TestCase to ClickTestCase in the integration tests
+          (4c06e2d)
+
+2014-07-02 Colin Watson
+
+        * Clean up integration tests - have one file per command and make
+          some things clearer. (3a42a00)
+        * Test-build two ubuntu-system-apps in a click chroot as part of
+          the   integration tests.;  Generalise handling of -devN
+          frameworks in "click chroot". (6658fda)
+        * Produce coverage only on request via ./configure --enable-gcov.
+          Extend it to cover C code as well, and produce a merged
+          coverage.xml. (ee63a89)
+        * Fix gcovr test. (f8e81ec)
+        * Declare clean-merged-coverage target as phony. (7b9e42a)
+        * Document coverage changes (mostly from Michael). (40e8756)
+        * Require gcovr to be installed for coverage support. (d299b04)
+
+2014-07-02 Michael Vogt
+
+        * add integration test for hooks (198d33b)
+        * add code to strip -devN from the framework name and simplify
+          chroot.framework_base (f456b8b)
+        * add ubuntu-sdk-14.04-dev1, ubuntu-sdk-14.10-dev{1,2} to
+          chroot.framework_base (7cca26f)
+
+2014-07-01 Michael Vogt
+
+        * add metaclass to create test_build_ methods dynamically (909b4ba)
+        * tests/integration/test_build_core_apps.py: strip "-devN" postfix
+          from framework (0e5cf22)
+        * add python3 to the extra_packages as this seems to be required for
+          the autopilot cmake (7aece6e)
+        * add click chroot exists (91a6581)
+        * cleanup (0eabe29)
+
+2014-06-30 Colin Watson
+
+        * Produce coverage only on request via ./configure --enable-gcov.
+          Extend it to cover C code as well, and produce a merged
+          coverage.xml. (12aa3b4)
+
+2014-06-30 Michael Vogt
+
+        * make it work for lp:camera-app and lp:notes-app (21331d9)
+        * make it work for the camera app as a example (38522cb)
+        * add missing bzr (71493bb)
+        * initial draft of a testbuild against the core apps (3ccab99)
+        * exclude not-existing users from User.get_user_names() (7ab49bc)
+
+2014-06-30 Colin Watson
+
+        * Fix unexpected indentation reported by sphinx-build. (bdb1810)
+
+2014-06-26 Brendan Donegan
+
+        * Fix pre-existing uses of TestCase (c90497e)
+        * Layout tests in seperate files for easier browsing. Rename TestCase
+          to ClickTestCase to distinguish it from unittest.TestCase
+          (090817a)
+
+2014-06-25 Dimitri John Ledkov
+
+        * Seed runtime target arch SDK app launcher, to enable remote
+          debugging. (11a8fbf)
+
+2014-06-25 Michael Vogt
+
+        * fix pep8 errors (078ff75)
+        * add testcase that ubuntu-app-stop is really called with the right
+          parameters (96789d1)
+
+2014-06-24 Michael Vogt
+
+        * lib/click/user.vala: upstart-app-stop -> ubuntu-app-stop (85311ad)
+        * merged lp:click/devel (35b1a63)
+        * do not crash when no database config is available (74e0740)
+
+2014-06-23 Colin Watson
+
+        * Various adjustments for improved PEP-8 compliance. (ecdbf91)
+        * Refactor click/chroot.py and improve tests. (04ca289)
+        * merge 0.4.28 release (ab4d4f9)
+
+2014-06-23 CI bot
+
+        * Releasing 0.4.28 (925a591)
+
+2014-06-23 Colin Watson
+
+        * Revert change in 0.4.27 to raise an error if no databases are
+          added; this makes most of libclick unusable if click is
+          not installed. (46a66ec)
+        * Revert change in 0.4.27 to raise an error if no databases are
+          added; this makes most of libclick unusable if click is
+          not installed. (eba4854)
+        * merge 0.4.27 release (f45de62)
+
+2014-06-23 Michael Vogt
+
+        * use dedent("""\...) in chroot.py as well (4b7c99e)
+        * address review comments from Colin (many thanks) (35d2589)
+
+2014-06-23 CI bot
+
+        * Releasing 0.4.27 (d0c3e60)
+
+2014-06-23 Colin Watson
+
+        * Click 0.4.27: Integration test improvements; handle renaming of
+          qtsensors5-dev to libqt5sensors5-dev in Qt 5.3.
+          Fixes:
+          1328486 (7659891)
+        * Handle renaming of qtsensors5-dev to libqt5sensors5-dev in Qt 5.3.
+          (aea3da9)
+        * Add integration tests for buildsource, pkgdir and framework.
+          (decd029)
+
+2014-06-23 Dimitri John Ledkov
+
+        * In Qt 5.3, qtsensors5-dev is renamed to libqt5sensors5-dev.
+          (b8031ac)
+
+2014-06-17 Michael Vogt
+
+        * add test for click buildsource and default to manifest in the
+          package directory (c684db2)
+        * lib/click/database.vala: raise error if no database is added.
+          db.last() is used in a bunch of places and without a
+          single db we get strange error messages later that are
+          hard to track down (933d1f1)
+        * add test for pkgdir (2fd1d62)
+        * add integration test for click framework list and some
+          documentation (160c61c)
+
+2014-06-16 Michael Vogt
+
+        * click/chroot.py: fix typo (673d337)
+        * fix pep8 issues (da38f02)
+        * use """ in generate_chroot_config (749ff9a)
+        * generate finish script via """ (0f39356)
+        * generate the apt proxy info directly instead of via the finish.sh
+          script (e6ed6d5)
+        * add test for destroy() (f5d4fe7)
+        * do basic test for ClickChroot.maint() too (611552b)
+        * add ClickChroot._generate_finish_script (1f053cf)
+        * add ClickChroot._generate_daemon_policy and test (df85fc0)
+        * test ClickChroot._generate_chroot_config (4151e8c)
+        * add initial test for ClickChroot.create (32af47f)
+
+2014-06-16 Colin Watson
+
+        * Add newline to end of debian/tests/control. (4debb65)
+        * Refactor the integration tests to be more modular.  Add
+          installation integration tests based on
+          https://wiki.ubuntu.com/Process/Merges/TestPlan/click.
+          (4744fed)
+        * Fix failing autopkgtests. (44187e6)
+
+2014-06-16 Michael Vogt
+
+        * make click info work on any file that is part of a installed click
+          package (6f3e986)
+
+2014-06-11 Michael Vogt
+
+        * add install integration tests (4073951)
+        * refactor integration tests (3e97785)
+        * run tests against the installed click (69f483d)
+        * debian/rules: honor DEB_BUILD_OPTIONS=nocheck (56e6641)
+
+2014-06-10 Colin Watson
+
+        * merge 0.4.26.1 release (3009fd8)
+
+2014-06-10 CI bot
+
+        * Releasing 0.4.26.1 (4c2b631)
+
+2014-06-10 Colin Watson
+
+        * Click 0.4.26: basic integration tests, coverage testing, and a fix
+          for running i386 chroots on amd64.
+          Fixes: 1328486
+          (d0319a7)
+        * Fix a pyflakes complaint. (079f406)
+        * releasing package click version 0.4.26 (dc2bbab)
+        * Fix DEB_BUILD_* environment variables when building on amd64 for
+          i386 (LP: #1328486). (e33f71c)
+        * Mock "dpkg --print-architecture" so that we can select different
+          native architectures in tests. (14a8d19)
+        * Ignore and clean generated coverage data. (3460a13)
+        * Run tests verbosely again. (9666282)
+        * Clean up whitespace in integration tests. (7fbbf7c)
+        * Port integration tests to Python 3. (632c76e)
+        * Omit tests/* from coverage data. (e677083)
+        * Remove redundant import. (eb6f92e)
+        * Add coverage testing. (b109421)
+        * Fix DEB_BUILD_* environment variables when building on amd64 for
+          i386 (LP: #1328486). (1c53047)
+
+2014-06-09 Michael Vogt
+
+        * use sys.exit(0) instead of return in the GIMOCK_SUBPROCESS code
+          (be7fd85)
+        * fix get_executable() to only use python{,3}-coverage if its really
+          in use (8e5c665)
+        * .coveragerc: exclude all of the tests code (9a2a0e3)
+        * use python3-coverage instead of python-coverage (thanks to Colin!)
+          (aeba55e)
+        * fix incorrect shuffle of sys import (5fca91d)
+        * add .coveragerc to exclude the actual tests and some system helpers
+          (a4a8b2d)
+
+2014-06-09 Colin Watson
+
+        * Add basic integration tests, run via autopkgtest. (7e49c5d)
+
+2014-06-06 Colin Watson
+
+        * merge 0.4.25 release (4fb92fe)
+
+2014-06-05 CI bot
+
+        * Releasing 0.4.25 (578ff27)
+
+2014-06-05 Colin Watson
+
+        * Click 0.4.25: Check for ubuntu-app-launch-desktop hook.
+          Fixes:
+          1326694 (c5142c4)
+        * Check for ubuntu-app-launch-desktop hook (LP: #1326694). (18da43d)
+
+2014-06-05 Ted Gould
+
+        * Check for ubuntu-app-launch-desktop hook (325f531)
+
+2014-06-04 Colin Watson
+
+        * merge 0.4.24 release (76ed138)
+
+2014-06-04 CI bot
+
+        * Releasing 0.4.24 (5c87351)
+
+2014-06-04 Colin Watson
+
+        * Click 0.4.24: Add 14.10 framework to "click chroot"; fix getpwnam
+          caching; handle renaming of upstart-app-launch to
+          ubuntu-app-launch.
+          Fixes: 1323998 (ff28a19)
+
+2014-06-03 Michael Vogt
+
+        * disable py3 for now (1bb331f)
+        * run integration tests with ADT (163824a)
+        * generate coverage info at build time (7dd56ad)
+        * add build/verfiy/contents (d461e35)
+        * start with a first integration test (f430fc1)
+        * add fallback if no python-coverage is available (da57156)
+        * add support for python3-coverage (4bfc858)
+        * add coverage support (df69ea8)
+
+2014-06-02 Colin Watson
+
+        * Handle the renaming of upstart-app-launch to ubuntu-app-launch: we
+          now cope with both old and new names. (7ec893f)
+        * Copy the pw_uid and pw_gid members from getpwnam's return value and
+          cache those separately, since getpwnam returns a pointer
+          to a static buffer so just caching its return value is not
+          useful (LP: #1323998). (0692e86)
+
+2014-06-01 Colin Watson
+
+        * Handle the renaming of upstart-app-launch to ubuntu-app-launch: we
+          now cope with both old and new names. (b441dba)
+
+2014-05-30 Colin Watson
+
+        * Copy the pw_uid and pw_gid members from getpwnam's return value and
+          cache those separately, since getpwnam returns a pointer
+          to a static buffer so just caching its return value is not
+          useful (LP: #1323998). (e356414)
+
+2014-05-22 Colin Watson
+
+        * Alias ubuntu-sdk-14.10-*-dev1 to ubuntu-sdk-14.10, not
+          ubuntu-sdk-14.04. (35426f9)
+        * Add 14.10 framework in places where all frameworks are listed.
+          (de78246)
+
+2014-05-22 Loïc Minier
+
+        * Add 14.10 framework in places where all frameworks are listed.
+          (65c99cc)
+
+2014-05-21 Colin Watson
+
+        * Remove nonsensical auto-generated changelog entries, most of which
+          were apparently somehow picked up from earlier releases.
+          (a97678e)
+        * merge 0.4.23.1 release (cda3c05)
+
+2014-05-20 CI bot
+
+        * Releasing 0.4.23.1 (1298089)
+
+2014-05-20 Michael Vogt
+
+        * Click 0.4.23: handle framework removal, x86 chroot support, and
+          various other small fixes.
+          Fixes: 1271944, 1294659,
+          1296820, 1319153, 1320786 (a9c76bd)
+
+2014-05-20 Colin Watson
+
+        * chroot: Force dpkg-architecture to recalculate everything rather
+          than picking up values from the environment, to avoid the
+          test suite getting confused by environment variables
+          exported by dpkg-buildpackage. (16050c5)
+        * releasing package click version 0.4.23 (10526f8)
+        * chroot: Handle the case where we can execute binaries for the
+          target architecture directly and thus don't need a
+          cross-compiler (LP: #1319153). (e3baa2f)
+        * chroot: Handle the case where we can execute binaries for the
+          target architecture directly and thus don't need a
+          cross-compiler (LP: #1319153). (efb4dfb)
+        * ... and fix "click chroot create" harder. (bc3e452)
+        * Fix parser attribute name in "click chroot create". (445ce29)
+        * Update documentation to describe "click framework list" rather than
+          "click list-frameworks". (e62f98c)
+        * Sort command names. (199f4e6)
+        * Add "click framework list" command to list available frameworks
+          (LP: #1294659). (5854f4f)
+        * Fix sources.list generation when native_arch and target_arch are on
+          the same archive server (part of LP #1319153). (336f9ef)
+
+2014-05-20 Michael Vogt
+
+        * merged lp:~mvo/click/chroot-cleanup-on-create-fail (9677163)
+        * add changelog (65ab01f)
+        * merged lp:click/devel (061728c)
+        * click/chroot.py: use "not foo" instead of "foo is False" (e27736e)
+        * add click framework info/get-field subcommands (9b3d1c5)
+        * use click framework list instead of click list-frameworks (21ef41a)
+        * don't duplicate deb-src lines (thanks to Colin) (87117ed)
+
+2014-05-19 Colin Watson
+
+        * click chroot creation depends on dpkg-architecture, so recommend
+          dpkg-dev. (60e7e04)
+        * Explain varying _setup_hooks_dir calls. (8920a53)
+        * merge lp:~mvo/click/hide-apps-on-missing-framework2 (plus a trivial
+          whitespace fix for pep8) (c372c30)
+
+2014-05-19 Sergio Schvezov
+
+        * Using the right package: dpkg-dev: /usr/bin/dpkg-architecture
+          (3e3008d)
+
+2014-05-19 Colin Watson
+
+        * Fix up validate_framework error handling. (9730e50)
+        * style tweaks (15718c9)
+        * Make validate_framework terminate on RegexError. (c04914b)
+        * typos (a97c531)
+        * When running hooks, remove hook symlinks if framework requirements
+          are not met (LP: #1271944). (6cabcc4)
+
+2014-05-19 Sergio Schvezov
+
+        * click chroot building depends on dpkg-architecture (0c972a6)
+
+2014-05-19 Colin Watson
+
+        * Add libunity-scopes-dev package to chroot (LP: #1320786). (07310f1)
+
+2014-05-19 Pete Woods
+
+        * Add libunity-scopes-dev package to chroot (d55216e)
+
+2014-05-16 Michael Vogt
+
+        * add --keep-broken-chroot option to make debugging easier (3a75600)
+
+2014-05-16 Colin Watson
+
+        * Selectively disable logging on some tests to avoid message spam
+          during the test runs. (02d760d)
+
+2014-05-15 Colin Watson
+
+        * Show human-readable error message when a click chroot subcommand
+          fails because of existing or non-existing chroots (LP:
+          #1296820). (bb4977f)
+
+2014-05-15 Michael Vogt
+
+        * click/commands/chroot.py: fix return value when a sub command
+          fails, thanks to Colin Watson (c61b4dc)
+
+2014-05-15 Colin Watson
+
+        * merge 0.4.22 release (486101b)
+
+2014-05-15 Michael Vogt
+
+        * fix bug in gen_sources when native_arch and target_arch are on the
+          same archive server (8199c51)
+        * click/chroot.py: when create() fails, cleanup the failed chroot
+          again (cc85d0e)
+        * click/chroot.py: fix exception hierarchy (84c5943)
+        * show human readable error message when a click chroot subcommand
+          fails because of existing or non-existing chroots
+          (3a344da)
+
+2014-05-14 Michael Vogt
+
+        * click/build.py: move .be back into
+          ClickSourceBuilder._ignore_patterns (6bb3d33)
+        * doc/manpage.rst: document -I option (a608017)
+        * test excludes in TestClickSourceBuilder (eb29614)
+        * click/tests/test_build.py: add self._make_scratch_dir() helper to
+          make test easier to read (ff3dad9)
+        * click/build.py: move identical self._ignore_patterns into
+          ClickBuilderBase (3bbecfc)
+        * add --ignore option to click {build,buildsource} (7ccbda5)
+        * add command to see the available frameworks (d539c40)
+
+2014-05-14 CI bot
+
+        * Releasing 0.4.22 (c900102)
+
+2014-05-14 Colin Watson
+
+        * Support for declaring dependencies on multiple frameworks in a
+          click package; Small documentation updates
+          Fixes: 1232130,
+          1318757 (a9db4ec)
+
+2014-05-13 Michael Vogt
+
+        * stop app if its running (5d9bc2f)
+        * selectivly disable logging on some tests to avoid message spam
+          during the test runs (95f9c11)
+        * lib/click/hooks.vala: move validate_framework_for_package() check
+          inside get_relevant_apps (abc4258)
+
+2014-05-13 Colin Watson
+
+        * merge lp:~mvo/click/avoid-exposing-envvars (67d5172)
+        * note closure of LP: #1318757 (53ea8a7)
+
+2014-05-09 Michael Vogt
+
+        * add two FIXMEs (ef14e61)
+        * use _make_hook_file (0dbbc41)
+        * reactor to tuse self._make_installed_click() (ddaf812)
+
+2014-05-09 Colin Watson
+
+        * merge lp:~mvo/click/documentation-tweak (09c6486)
+
+2014-05-09 Michael Vogt
+
+        * improve tests (fd82ca7)
+        * lib/click/hooks.vala: check base version of frameworks as well
+          (efa2115)
+        * doc/file-format.rst: update to latest framework policy decision
+          (60c3a7f)
+        * support multiple frameworks in validate_frameworks (6fec34b)
+        * add test for framework validation when hook.sync() is run (83066e0)
+        * when running sync(), remove symlink to apps which no longer have a
+          supported framework (fd4b9e8)
+        * doc/index.rst: include --prefix/--sysconfdir in the configure
+          example so that the build finds the click system database
+          and packages (0f0ef4f)
+        * lib/click/hooks.vala: fix copy/paste error in description for
+          package_install_hooks (319e82d)
+
+2014-05-08 Michael Vogt
+
+        * click/tests/helpers.py: use mock.patch() (thanks to Colin Watson)
+          (714c170)
+        * avoid using CLICK_FRAMEWORKS_DIR environment and just monkey-patch
+          click.paths.frameworks_dir (thanks to Colin Watson for
+          this suggestion) (3d62643)
+
+2014-05-08 Colin Watson
+
+        * merge lp:~mvo/click/multiple-frameworks (3215c2e)
+        * formatting (9960104)
+        * merge lp:~mvo/click/documentation-tweak (b6ed374)
+
+2014-05-05 Michael Vogt
+
+        * improve TestClickInstaller._setup_frameworks() (9c30916)
+        * add support for multiple frameworks (74219c0)
+        * fix typo and document how to run individual testcases (867062c)
+        * Update documentation for building the project (178e56c)
+
+2014-04-08 Colin Watson
+
+        * merge 0.4.21.1 release (95819f4)
+
+2014-04-08 CI bot
+
+        * Releasing 0.4.21.1 (a683668)
+
+2014-04-08 Colin Watson
+
+        * Click 0.4.21: Added manifest methods so that clients can avoid
+          JSON-GLib; handle some crashes more gracefully; run user
+          hooks after dbus to fix the content-hub hook; fix
+          backports to pre-trusty.
+          Fixes: 1297519, 1298457 (f71c40e)
+        * Log hook failures to stderr and exit non-zero, rather than
+          propagating an exception which is then logged as a click
+          crash. (955cb5a)
+        * Don't allow failure of a single hook to prevent other hooks being
+          run. (64bbdfd)
+        * When a hook command fails, include the command in the error
+          message. (cfe0591)
+        * releasing package click version 0.4.21 (2752f46)
+
+2014-04-07 Colin Watson
+
+        * Add appropriate Since: annotations. (3222372)
+
+2014-04-03 Colin Watson
+
+        * Don't rely on PyGObject supporting default None arguments; this was
+          only added in 3.11.1. (7c234df)
+
+2014-04-01 Colin Watson
+
+        * Don't run user hooks until dbus has started; the content-hub hook
+          needs to modify gsettings. (b55fd66)
+
+2014-03-31 Colin Watson
+
+        * Make the get_manifests family of functions log errors about
+          individual manifests to stderr rather than crashing (LP:
+          #1297519). (5ed1fd8)
+        * Fix docstring. (efe1d0f)
+        * Write to stderr and exit non-zero when chrooted commands fail,
+          rather than propagating an exception which is then logged
+          as a click crash (LP: #1298457). (e27f270)
+        * Add *_as_string variants of manifest methods, for clients that
+          already have their own JSON parsing libraries and don't
+          want to use JSON-GLib. (8be3d03)
+
+2014-03-26 Colin Watson
+
+        * merge 0.4.20 release (57448c5)
+
+2014-03-24 CI bot
+
+        * Releasing 0.4.20 (ef98067)
+
+2014-03-24 Colin Watson
+
+        * Click 0.4.20: Create system hook symlinks for all installed
+          packages, not just current versions. (f6bbea6)
+        * Create system hook symlinks for all installed packages, not just
+          current versions.  This avoids missing AppArmor profiles
+          when there are unregistered user-installed versions of
+          packages lying around. (488f629)
+
+2014-03-19 Colin Watson
+
+        * merge 0.4.19 release (6f860cf)
+
+2014-03-18 CI bot
+
+        * Releasing 0.4.19 (a7ff6a8)
+
+2014-03-18 Colin Watson
+
+        * Click 0.4.19: pkg-config fixes, improve "click info" output, and
+          several "click chroot" improvements including 14.04
+          support.
+          Fixes: 1293788 (30db860)
+        * chroot: Run apt-get dist-upgrade on the chroot before trying to
+          install the basic build tool set.  Fixes chroot creation
+          for saucy. (af4a5db)
+        * chroot: Make /usr/sbin/policy-rc.d executable in the chroot, as
+          otherwise it has no effect. (16e7d18)
+        * chroot: Fix code to make /finish.sh executable. (8581ee9)
+        * Allow specifying a framework base directly. (864a250)
+        * Document that click chroot -s is mainly for debugging. (00d894c)
+        * Make manifest.json example actually be valid JSON. (77b7743)
+        * tweak version (851c5bc)
+        * Document -f and -s options to "click chroot" in click(1). (e77d4cb)
+        * Document chroot session management. (53b0d4a)
+        * merge lp:~xnox/click/chroot-sessions (1209ad8)
+        * Include _directory and _removable dynamic manifest keys in "click
+          info" output (LP: #1293788). (8140d6b)
+        * chroot: Allow creating 14.04 chroots. (73aeaa5)
+
+2014-03-17 Colin Watson
+
+        * Remove trailing whitespace. (dfce2df)
+
+2014-03-14 Colin Watson
+
+        * merge lp:~zeller-benjamin/click/pkexec-create (e206655)
+
+2014-03-14 Benjamin Zeller
+
+        * Take pkexec env vars into account when creating a chroot (937257f)
+
+2014-03-13 Colin Watson
+
+        * Add Requires.private to click-0.4.pc, so that programs built
+          against libclick pick up the proper CFLAGS including glib
+          and json-glib. (f9b4ad6)
+        * Make libclick-0.4-dev depend on libjson-glib-dev for
+          <json-glib/json-glib.h>. (e76f8ea)
+        * Fix a few potential GLib critical messages from the PackageKit
+          plugin. (a814581)
+        * /custom/click, not /custom. (38d5055)
+        * Add brief documentation on Click's multiple-database scheme, based
+          on my recent mail to ubuntu-phone. (1b48a7f)
+
+2014-03-12 Colin Watson
+
+        * Set Click.User.ensure_db visibility back to private, since it's no
+          longer used by Click.Hook.  (The C ABI is unaffected.)
+          (028c1ba)
+        * merge 0.4.18.3 release (03a40bf)
+
+2014-03-12 CI bot
+
+        * Releasing 0.4.18.3 (a756327)
+
+2014-03-12 Colin Watson
+
+        * Fix crash in "click hook run-user".
+          Fixes: 1291192 (c50f531)
+        * Take a slightly different approach to fixing "click hook run-user":
+          only try to update user registration symlinks if they
+          already exist in the overlay database. (232f5ac)
+        * releasing package click version 0.4.18.2 (b6fc9cd)
+        * Avoid ensure_dbing multiple times. (eb3804c)
+        * Make "click hook run-user" ensure that the user registration
+          directory exists before dropping privileges and trying to
+          create symlinks in it (LP: #1291192). (5e7ec90)
+
+2014-03-11 Colin Watson
+
+        * merge 0.4.18.1 release (719ad9b)
+
+2014-03-11 CI bot
+
+        * Releasing 0.4.18.1 (266a812)
+
+2014-03-11 Colin Watson
+
+        * Click 0.4.18: libclick manifest and framework interfaces; speed up
+          some PK plugin operations.
+          Fixes: 1271633, 1287692,
+          1287693, 1287694 (06f290b)
+        * Fix problems with multiple unpacked copies of the same version.
+          (e4c2e6e)
+        * releasing package click version 0.4.18 (da52193)
+        * Make "click hook run-system" and "click hook run-user" consistently
+          use the bottom-most unpacked copy of a given version of a
+          package, and update hook symlinks and user registration
+          symlinks if necessary. (3f2e034)
+        * If a user attempts to install a version of a package that is
+          already installed in an underlay database, then just
+          register the appropriate version for them rather than
+          unpacking another copy. (2fe09e6)
+        * Use libclick when listing or searching packages via the PackageKit
+          plugin. (298117f)
+        * merge lp:~cjwatson/click/supported-frameworks (5cc3bb4)
+
+2014-03-10 Colin Watson
+
+        * merge trunk (9bfe7f9)
+        * Override description-starts-with-package-name Lintian error for
+          click; this is describing the system as a whole rather
+          than naming the package. (f1a4824)
+        * Add libclick interfaces to get the list of frameworks supported by
+          the current system (LP: #1271633) and various properties
+          of those frameworks (LP: #1287694). (4317c8d)
+        * Add libclick interfaces to get package manifests, both individually
+          (LP: #1287692) and for all installed packages (LP:
+          #1287693). (2bcbb07)
+        * Fix test coverage glitch. (b4d5830)
+
+2014-03-07 Colin Watson
+
+        * Use libclick when removing packages via the PackageKit plugin.
+          (32f306e)
+        * Factor out some repetitive PackageKit error-reporting code.
+          (d060e26)
+        * Document that users of "_removable" should tolerate it being a
+          boolean. (da7c84e)
+        * Make the PackageKit plugin tolerate the "_removable" dynamic
+          manifest key being changed to a boolean in the future.
+          (b31c920)
+        * Ignore extraneous non-directories when walking a database root in
+          Click.DB.get_packages and Click.DB.gc. (1d06eda)
+        * Add a similar is_dir helper method. (448d291)
+        * Use is_symlink helper method in a few more places. (6e81533)
+
+2014-03-06 Colin Watson
+
+        * Give gir1.2-click-0.4 an exact-versioned dependency on
+          libclick-0.4-0. (a5246e9)
+        * merge 0.4.17.2 release (33fffa7)
+
+2014-03-06 CI bot
+
+        * Releasing 0.4.17.2 (8d9c39c)
+
+2014-03-06 Colin Watson
+
+        * Click 0.4.17: Upstart job tweaks, and an initial core subset of
+          libclick.
+          Fixes: 1197047, 1200670, 1204523, 1204560,
+          1204570, 1205346, 1206115, 1209329, 1214380, 1214864,
+          1215480, 1217333, 1218483, 1218674, 1220125, 1221760,
+          1223085, 1223640, 1225923, 1226553, 1227604, 1227681,
+          1228619, 1232066, 1232118, 1232128, 1233280, 1236669,
+          1236671, 1236673, 1238796, 1251604, 1251635, 1253855,
+          1259253, 1260487, 1260669, 1260671 (6319895)
+        * Fix Click.User construction in "click pkgdir". (d60135c)
+        * releasing package click version 0.4.17.1 (651a272)
+        * Map gboolean to ctypes.c_int, not ctypes.c_bool.  gboolean and gint
+          are the same as far as glib is concerned, and ctypes does
+          strange things with its bool type in callbacks. (fba79ee)
+        * Build-depend and depend on gir1.2-glib-2.0 and python3-gi.
+          (503db94)
+        * Lintian complains about dh --with gir without a direct
+          Build-Depends: gobject-introspection, although
+          libgirepository1.0-dev depends on it.  Build-depend on
+          both. (c44d7ff)
+        * gobject-introspection-1.0.pc is in libgirepository1.0-dev, not
+          gobject-introspection.  Fix Build-Depends. (6a44b38)
+        * releasing package click version 0.4.17 (8fd3895)
+        * merge lp:~cjwatson/click/libclick (f5b81c4)
+        * libclick-0.4-dev needs to depend on libglib2.0-dev for <glib.h> and
+          <glib-object.h>. (7cb3408)
+        * Remove "#include <gee.h>" from our external header file. (250a52b)
+
+2014-03-05 Colin Watson
+
+        * When creating a User, implicitly create a DB if none was provided.
+          This is convenient for the common case of quick lookups in
+          clients. (766787b)
+        * merge trunk (24f163f)
+        * Add systemd units to run Click system and user hooks at the
+          appropriate times.  We probably won't be using these for a
+          while, but it does no harm to add them. (c4ea144)
+        * Use full path to click in Upstart jobs to save a $PATH lookup.
+          (e045e31)
+        * merge 0.4.16 release (0dabd85)
+        * Add a run-click script to run bin/click from the build tree; useful
+          during development. (676eec3)
+
+2014-03-04 CI bot
+
+        * Releasing 0.4.16 (4332884)
+
+2014-03-04 Colin Watson
+
+        * Merge click 0.4.16: prerequisites for libclick and a few bug fixes.
+
+          Fixes: 1197047, 1200670, 1204523, 1204560, 1204570,
+          1205346, 1206115, 1209329, 1214380, 1214864, 1215480,
+          1217333, 1218483, 1218674, 1220125, 1221760, 1223085,
+          1223640, 1225923, 1226553, 1227604, 1227681, 1228619,
+          1232066, 1232118, 1232128, 1233280, 1236669, 1236671,
+          1236673, 1238796, 1251604, 1251635, 1253855, 1259253,
+          1260487, 1260669, 1260671 (6c737f3)
+        * Hook Exec lines must be run using /bin/sh; Shell.parse_argv isn't
+          enough, as Exec may contain more than just a simple
+          command. (88fe942)
+        * merge trunk (9e9c0e0)
+        * Relink library if lib/click/click.sym changes. (7f9e528)
+        * Simplify Hooks.open_all slightly. (7b0e7c6)
+
+2014-03-03 Colin Watson
+
+        * Reset SIGPIPE handling from Python's default of raising an
+          exception to the Unix default of terminating the process
+          (LP: #1285790). (5e20c55)
+        * Use has_package_name in User.is_removable for brevity and to be
+          closer to the original Python code. (9e1391b)
+        * lib/click/user.vala: Might as well use our "exists" helper here
+          too. (29b66c9)
+        * lib/click/database.vala: Clear errno before calling getpwnam so
+          that we can detect errors.  (We already did this
+          elsewhere.) (0a9e07c)
+        * Fix infinite loop if Vala version of find_package_directory reaches
+          "/". (d6369de)
+        * Remove unnecessary PosixExtra versions of setgrent and endgrent.
+          (ea26bdf)
+        * Fix bug in Vala conversion of find_on_path: only regular files
+          should count. (581fe89)
+        * Keep to <80 columns. (157dd02)
+        * Update run_in_subprocess header comment. (1eaa971)
+        * Move an initial core of functionality (database, hooks, osextras,
+          query, user) from Python into a new "libclick" library,
+          allowing performance-critical clients to avoid the cost of
+          starting a new Python interpreter (LP: #1282311).
+          (c346811)
+        * Sync up substvar use with what debhelper actually generates for us:
+          add ${misc:Pre-Depends} to click and
+          packagekit-plugin-click, and remove ${python3:Depends}
+          from click-dev. (fac853e)
+        * Use dh_install --fail-missing to avoid future mistakes. (ee36e7f)
+        * tox.ini: Regularise whitespace. (9994ff3)
+        * Tighten packagekit-plugin-click -> click dependency to require a
+          matching version. (9a8dc45)
+        * Simplify click -> python3-click dependency given that both are
+          Architecture: any. (2709284)
+
+2014-03-02 Colin Watson
+
+        * Build-depend on python3-pep8 so that test_pep8_clean doesn't need
+          to be skipped when running under Python 3.  This can
+          safely be removed for backports to precise. (0affca7)
+        * Drop AM_GNU_GETTEXT and call intltoolize before autoreconf in
+          autogen.sh; this fixes a bug whereby "make" after
+          "./configure" always immediately needed to run aclocal.
+          (c9add23)
+        * Call setup.py from the top-level Makefile.am rather than from
+          debian/rules, to make the build system a bit more unified.
+          (6c58134)
+        * Add Python 3.4 to list of tested versions. (4b672b8)
+
+2014-03-01 Colin Watson
+
+        * user: When setting the registered version of a package to the
+          version in an underlay database (e.g. a preinstalled
+          version vs. one in the user-installed area), remove the
+          overlay link rather than setting a new one equal to the
+          underlay; this was always the intended behaviour but
+          didn't work that way due to a typo. (54db644)
+        * Stop using unittest2 if available; the relevant improvements were
+          integrated into the standard library's unittest in Python
+          2.7, and we no longer support 2.6. (3694b1c)
+        * Move version detection out of configure.ac into a separate
+          get-version script, since intltool-update has trouble with
+          the previous approach. (1daaf7d)
+
+2014-02-19 Colin Watson
+
+        * hooks: Fix expansion of "$$" in hook patterns to conform to the
+          documented behaviour of expanding to the single character
+          "$". (19281a9)
+
+2014-02-10 Dimitri John Ledkov
+
+        * Add session management to click chroot. (9377d10)
+
+2014-01-30 CI bot
+
+        * Releasing 0.4.15 (e348395)
+
+2014-01-30 Stéphane Graber
+
+        * Update debian/control for CI-Train. (c0ac057)
+
+2014-01-29 Stéphane Graber
+
+        * Update debian/control for CI-Train (a4d8a40)
+
+2014-01-23 Colin Watson
+
+        * releasing package click version 0.4.14 (50e02cf)
+        * note framework build limitation (d7b6b76)
+        * build: Enforce only a single framework declaration for now, by
+          request. (c504aec)
+        * Policy version 3.9.5: no changes required. (4df568a)
+
+2014-01-22 Colin Watson
+
+        * Capitalise "Ubuntu". (9affbd8)
+        * merge lp:~xnox/click/cmake (4a9c8b3)
+        * Keep package names sorted. (4534146)
+        * Add qtmultimedia5-dev to the SDK framework list. (3cc209d)
+        * install: Extend the interpretation of "framework" a little bit to
+          allow a Click package to declare that it requires multiple
+          frameworks.  This will allow splitting up the SDK
+          framework declarations into more fine-grained elements.
+          (47472ad)
+
+2014-01-22 Dimitri John Ledkov
+
+        * chroot: Add "cmake" to build_pkgs, as it is expected for cmake to
+          be available on any (ubuntu) framework. (624cf68)
+
+2014-01-22 Colin Watson
+
+        * hooks: Strip any trailing slashes from the end of patterns, as they
+          cause confusion with symlink-to-directory semantics and
+          can never be useful (LP: #1253855). (c9bcb15)
+        * hooks: Add a ${short-id} expansion to hook patterns; this is valid
+          only in user-level or single-version hooks, and expands to
+          a new "short application ID" without the version (LP:
+          #1251635). (3077108)
+
+2014-01-13 Zoltán Balogh
+
+        * Add qtmultimedia5-dev to the SDK framework list (cf559c6)
+
+2013-12-13 Colin Watson
+
+        * chroot: Check for root in "create" and "destroy" (LP: #1260671).
+          (c81df32)
+        * chroot: Recommend debootstrap from click-dev, and explicitly check
+          for it in "click chroot create" (LP: #1260487). (e2ec61e)
+        * chroot: Print help if no subcommand given (LP: #1260669). (5819ec7)
+
+2013-12-10 Colin Watson
+
+        * releasing package click version 0.4.13 (f74a9dc)
+        * Fix ownership of symlinks to directories as well. (3c3dc9e)
+        * Fix ownership of OVERLAY/.click/log as well. (4d721d6)
+        * Ensure correct permissions on /opt/click.ubuntu.com at boot, since
+          a system image update may have changed clickpkg's UID/GID
+          (LP: #1259253). (093fd04)
+        * Ignore build-aux/compile. (0a6030d)
+
+2013-12-06 Colin Watson
+
+        * If "click build" or "click buildsource" is given a directory as the
+          value of its -m/--manifest option, interpret that as
+          indicating the "manifest.json" file in that directory (LP:
+          #1251604). (33ddd59)
+
+2013-11-26 Colin Watson
+
+        * Add *.click to binary ignore list as well as source ignore list.
+          (bae6e7e)
+        * Preserve sorting. (456607d)
+        * merge lp:~robru/click/ignore-clicks (a771571)
+
+2013-11-25 Robert Bruce Park
+
+        * Ignore click packages when building click packages. (6523342)
+
+2013-11-21 Colin Watson
+
+        * releasing package click version 0.4.12 (f78d2f1)
+
+2013-11-08 Colin Watson
+
+        * Build-depend on python3:any/python3-all:any rather than
+          python3/python3-all. (c3b8d4c)
+        * Allow passing the framework as an option in "click chroot".
+          (cbd392a)
+        * fix undefined variable (9819189)
+
+2013-11-07 Colin Watson
+
+        * Allow overriding the default series for a framework in "click
+          chroot create". (4bd46a5)
+
+2013-11-01 Colin Watson
+
+        * Force encoding when reading debian/changelog. (85d2c6e)
+        * Export everything from dpkg-architecture, not just DEB_HOST_*.
+          (914b07f)
+        * Add a few more -dev packages to match
+          https://wiki.ubuntu.com/Touch/CrossCompile. (37b76e7)
+        * Add chroot management support. (3b9bd6e)
+        * click-dev Recommends: schroot; complain if schroot not installed
+          and configured. (a6853d5)
+        * changelog (2672ff5)
+        * merge trunk (082c7ac)
+        * click chroot, not click-chroot (2346d13)
+        * Consolidate code related to primary architectures. (f04151a)
+        * Drop native architecture from chroot name. (bbbce8a)
+        * Add "click chroot maint" subcommand. (9979b60)
+        * Default to running bash if no program is specified. (65d6f0e)
+        * Infer series from framework. (dd026be)
+        * Document click chroot. (c793e11)
+        * Set appropriate dpkg-architecture environment variables for
+          cross-building. (3a6c4d0)
+
+2013-10-31 Colin Watson
+
+        * Mount /home with rbind (to support encrypted home directories) and
+          drop --directory=/. (821f61b)
+        * Grant the creating user full access to the chroot. (892a52e)
+        * Hook up the chroot command. (c3d2a53)
+
+2013-10-30 Colin Watson
+
+        * Declare click-dev Multi-Arch: foreign (LP: #1238796). (b753b72)
+        * Read version and date from debian/changelog when building
+          documentation. (55b5dcc)
+
+2013-10-28 Colin Watson
+
+        * Fix hook installation tests to test Unicode manifests properly.
+          (beefd6d)
+
+2013-10-22 Colin Watson
+
+        * Adjust top-level "click help" entry for "install" to point to
+          pkcon. (ccffe0b)
+
+2013-10-15 Colin Watson
+
+        * Bump versions in doc/conf.py. (87237ea)
+
+2013-10-11 Colin Watson
+
+        * releasing package click version 0.4.11 (ac56631)
+
+2013-10-08 Colin Watson
+
+        * Show a neater error message when running "click install" with
+          insufficient privileges (LP: #1236673). (7659b7e)
+        * Show a neater error message when building a package whose manifest
+          file cannot be parsed (LP: #1236669). (95cd47b)
+        * Fill out click.install.__all__. (31da391)
+        * Show a neater error message when a package's framework is not
+          installed (LP: #1236671). (cb372ca)
+        * Drop --force-missing-framework from PackageKit plugin now that
+          /usr/share/click/frameworks/ubuntu-sdk-13.10.framework is
+          in ubuntu-sdk-libs. (a85b958)
+
+2013-10-07 Brian Murray
+
+        * fix argparse imports (45a3d7b)
+        * modify how apt-config is used to check for a proxy (4b941a8)
+        * modifications based on reviewer feedback (d6b475f)
+
+2013-10-03 Brian Murray
+
+        * call subprocess.check_output with universal_newlines=True (24c7d09)
+
+2013-10-02 Brian Murray
+
+        * add in code for creating and managing chroots (9c8ed28)
+
+2013-09-30 Colin Watson
+
+        * releasing package click version 0.4.10 (a9d0f2d)
+        * When removing packages, only drop privileges after ensuring the
+          existence of the database directory (LP: #1233280).
+          (87e8eec)
+        * releasing package click version 0.4.9 (268202d)
+        * Force unpacked files to be owner-writeable (LP: #1232128).
+          (cb806e3)
+        * Extend "click info" to take a registered package name as an
+          alternative to a path to a Click package file (LP:
+          #1232118). (3a45b3c)
+        * Correctly pass through return values of commands as the exit status
+          of the "click" wrapper. (af63c36)
+
+2013-09-29 Colin Watson
+
+        * Support packages containing code for multiple architectures, and
+          document the "architecture" manifest field (LP: #1214380,
+          #1214864). (02b1586)
+
+2013-09-27 Colin Watson
+
+        * Ensure that the user's overlay database directory exists when
+          unregistering a preinstalled package (LP: #1232066).
+          (60e31f7)
+
+2013-09-25 Colin Watson
+
+        * Remove some stray documentation references to Ubuntu 13.04.
+          (47f0f7d)
+        * Explicitly build-depend on pkg-config, since it's needed even if
+          the PackageKit/GLib-related build-dependencies are removed
+          for backporting. (aeb425f)
+
+2013-09-24 Colin Watson
+
+        * releasing package click version 0.4.8 (6c84290)
+
+2013-09-23 Colin Watson
+
+        * Validate the shipped md5sums file in "click verify" (LP: #1217333).
+          (40727c6)
+        * Consolidate ClickInstaller.audit_control into ClickInstaller.audit.
+          (2a67726)
+        * Allow unregistering preinstalled packages.  A preinstalled package
+          cannot in general actually be removed from disk, but
+          unregistering it for a user records it as being hidden
+          from that user's list of registered packages.
+          Reinstalling the same version unhides it. (a0dd7e3)
+        * Rename ClickUser.__setitem__ to ClickUser.set_version and
+          ClickUser.__delitem__ to ClickUser.remove; with multiple
+          databases it was impossible for these methods to fulfil
+          the normal contract for mutable mappings, since deleting
+          an item might simply expose an item in an underlying
+          database. (4a3147e)
+        * Expose application names and whether a package is removable via the
+          PackageKit API: the IDs of installed applications are now
+          formed as comma-separated key/value pairs, e.g.
+          "installed:click,removable=1,app_name=foo,app_name=bar"
+          (LP: #1209329). (408e523)
+        * Tidy up use of PackageKit IDs; local:click should refer to
+          uninstalled packages, while installed:click refers to
+          installed packages. (7e20692)
+        * Restore missing newlines after JSON dumps in "click info" and
+          "click list --manifest". (c3becb3)
+        * Show a proper error message if "click build" or "click buildsource"
+          is called on a directory that does not exist or does not
+          contain a manifest file, rather than crashing (LP:
+          #1228619). (f5c9095)
+
+2013-09-20 Colin Watson
+
+        * releasing package click version 0.4.7 (c120e6b)
+        * further changelog adjustment (84f19be)
+        * adjust changelog for fixes for LP: #1227604 to reflect reality
+          better (0a4b183)
+        * Filter version control metadata and editor backup files out of
+          binary packages in "click build" (LP: #1223640). (91c76b4)
+        * Rename "click hook install-system" and "click hook install-user" to
+          "click hook run-system" and "click hook run-user"
+          respectively, to better fit their semantics.  (I expect
+          these commands only to have been used internally by
+          click's own Upstart jobs.) (479a1af)
+        * Improve "click hook install-system" and "click hook install-user"
+          to remove any stale symlinks they find, and to run Exec
+          commands only once per hook. (8224ac3)
+        * Refactor search for previous link entries into a new method.
+          (de09555)
+        * If a hook symlink is already correct, don't unnecessarily remove
+          and recreate it, and don't run its associated Exec
+          command.  This significantly speeds up system and session
+          startup when lots of applications are installed (LP:
+          #1227604). (ad87bbf)
+
+2013-09-19 Colin Watson
+
+        * Run system hooks when removing a package from the file system (LP:
+          #1227681). (36c13c1)
+        * Fix click.tests.test_hooks.__all__. (a98a3df)
+
+2013-09-17 Colin Watson
+
+        * releasing package click version 0.4.6 (8878995)
+        * Make sure all unpacked files and directories are group- and
+          world-readable, and (if owner-executable) also group- and
+          world-executable (LP: #1226553). (8a7a7f3)
+
+2013-09-16 Colin Watson
+
+        * releasing package click version 0.4.5 (29f2c7f)
+        * Run system hooks at boot time, in particular so that AppArmor
+          profiles for packages in /custom are generated and loaded
+          (LP: #1223085). (32d1d16)
+        * Make "click pkgdir" exit 1 if a directory for the given package
+          name or path is not found, rather than letting the
+          exception propagate (LP: #1225923). (9d1923b)
+
+2013-09-14 Colin Watson
+
+        * Document --force-missing-framework option in the error message
+          produced when a package's required framework is not
+          present. (1f516e5)
+
+2013-09-09 Colin Watson
+
+        * releasing package click version 0.4.4 (b28b578)
+        * Add the dynamic key "_removable" to "click list --manifest" output,
+          which is 1 if a package is unpacked in a location from
+          which it can be removed, otherwise 0. (8ce33a6)
+        * Add the dynamic key "_directory" to "click list --manifest" output,
+          showing the directory where each package is unpacked (LP:
+          #1221760). (797e70f)
+        * Reserve manifest keys starting with an underscore for use as
+          dynamic properties of installed packages. (6a68073)
+        * Implement PackageKit search by name and by details. (1e3070a)
+        * Remember to claim to implement package removal. (84d014a)
+        * Report errors from click subprocesses in PackageKit plugin (LP:
+          #1218483). (e25706e)
+        * Remove code supporting PackageKit 0.7 API, and instead arrange to
+          disable the PackageKit plugin if the new API is not
+          available, since we don't need to build it on Ubuntu 12.04
+          LTS. (ec561f2)
+        * Adjust test for auto-removal of old versions. (b29778b)
+        * Attempt to remove the old version of a package after installing or
+          registering a new one. (c9d16ac)
+
+2013-09-08 Colin Watson
+
+        * todo: we have a manual page now (3deb398)
+        * Add RemovePackage support to the PackageKit plugin, mapped to
+          "click unregister". (c73b2cf)
+
+2013-09-06 Colin Watson
+
+        * Add "click unregister", which unregisters a package for a user and
+          removes it from disk if it is not being used. (6cc0654)
+        * Use json.dump and json.load in most places rather than json.dumps
+          and json.loads (which unnecessarily construct strings).
+          (fa9440a)
+        * Add a click(1) manual page. (3805cf3)
+
+2013-09-05 Colin Watson
+
+        * Adjust "click help pkgdir"'s usage line to indicate that options
+          are allowed. (a2049f7)
+        * Adjust "click help verify"'s usage line to indicate that options
+          are allowed. (63b8a8f)
+        * Run hooks when removing a per-user package registration. (de97fed)
+        * Remove dead code. (c5b0b56)
+        * Amend "click help install" to recommend using "pkcon
+          install-local". (ca37e52)
+
+2013-09-04 Colin Watson
+
+        * releasing package click version 0.4.3 (f5a1f00)
+        * Use aa-exec-click rather than aa-exec in .desktop files generated
+          by "click desktophook" (LP: #1197047). (56a67a8)
+        * Force umask to a sane value when dropping privileges (022 for
+          clickpkg, current-umask | 002 for other users; LP:
+          #1215480). (608835b)
+        * Define databases in /usr/share/click/preinstalled and
+          /custom/click. (09d60c7)
+        * Avoid calling "click desktophook" if
+          /usr/share/click/hooks/upstart-app-launch-desktop.hook
+          exists. (44152d0)
+        * Run "click hook install-user" on session startup from an Upstart
+          user job. (3d961ef)
+
+2013-09-03 Colin Watson
+
+        * Add "click hook install-user", which runs all user-level hooks for
+          all packages for a given user.  This is useful at session
+          startup to catch up with packages that may have been
+          preinstalled and registered for all users. (ddccc6b)
+        * Rename some click.hooks methods to make room for new ones.
+          (32f44bd)
+        * Add --all-users option to "click install" and "click register":
+          this registers the installed package for a special
+          pseudo-user "@all", making it visible to all users.
+          (3c3c6be)
+        * Add support for multiple installation root directories, configured
+          in /etc/click/databases/. (93ba6f0)
+        * releasing package click version 0.4.2 (e83a7e7)
+        * lchown fix closes LP: #1220125 (7d1b634)
+
+2013-09-02 Colin Watson
+
+        * Suppress dpkg calls to lchown when not running as root. (a70cc46)
+        * releasing package click version 0.4.1 (67aa58c)
+        * merge lp:~sergiusens/click/older (7498078)
+
+2013-09-02 Sergio Schvezov
+
+        * reverting if/iff (ec35b6e)
+        * Compare mtimes for desktop files. (e003ba4)
+
+2013-08-30 Colin Watson
+
+        * releasing package click version 0.4.0 (c7c4126)
+        * Run dpkg with --force-bad-path so that /sbin and /usr/sbin are not
+          required to be on $PATH; we don't use the tools dpkg gets
+          from there. (717df72)
+        * Bump Click-Version to 0.4. (6215ee2)
+
+2013-08-30 Loïc Minier
+
+        * Add fopen64 wrapper (LP: #1218674). (321b614)
+
+2013-08-30 Colin Watson
+
+        * Consistently call clickpreload_init from preloaded functions in
+          case they happen to be called before libclickpreload's
+          constructor. (bcf7ed5)
+        * Add an optional "icon" manifest key. (7bc3f7a)
+
+2013-08-29 Colin Watson
+
+        * Add "installed-size" as a mandatory field in the control area's
+          "manifest" file; it should not be present in source
+          manifest files, and is generated automatically by "click
+          build". (84740f8)
+
+2013-08-28 Colin Watson
+
+        * releasing package click version 0.3.4 (fdf019d)
+        * Make "click desktophook" tolerate dangling symlinks in
+          ~/.local/share/applications/. (28fe6b7)
+        * releasing package click version 0.3.3 (2e318d7)
+
+2013-08-27 Colin Watson
+
+        * Recommend click-apparmor from click (suggested by Jamie
+          Strandboge). (d818194)
+        * releasing package click version 0.3.2 (8de964c)
+        * keep title next to description (ee7b114)
+        * Support PackageKit 0.8 API. (02a2aff)
+        * changelog (e29abf2)
+        * Update Build-Depends for PackageKit 0.8 support. (95202e6)
+        * Restore conditional compatibility with PackageKit 0.7. (06f0d86)
+        * merge lp:~ximion/click/pk-0.8-compatibility (0a7a5c6)
+        * merge lp:~jdstrand/click/click-add-maintainer (2d2ff83)
+
+2013-08-21 Matthias Klumpp
+
+        * Don't break PackageKit's simulate actions for InstallFiles()
+          (2082cb5)
+        * Make click compile with PackageKit 0.8.x API (d5c8cf6)
+
+2013-08-19 jdstrand
+
+        * add maintainer as an optional field in doc/file-format.rst
+          (31c175a)
+
+2013-08-13 Colin Watson
+
+        * releasing version 0.3.1 (844a46a)
+        * typo (640e13b)
+        * merge lp:~jdstrand/click/click-codify-appid (2cb27f8)
+        * Work around the lack of a python-apt backport of
+          apt_pkg.TagFile(sequence, bytes=True) to precise.
+          (251018b)
+        * Fix some more failures with mock 0.7.2. (07ab865)
+
+2013-08-12 jdstrand
+
+        * doc/hooks.rst: application name can also have upper case letters
+          (508f3f2)
+        * codify allowed characters for "application ID" fix typos in
+          apparmor hook example (8224638)
+
+2013-08-06 Colin Watson
+
+        * releasing version 0.3.0 (cd8531d)
+        * Rename click's own "desktop" hook to "click-desktop", making use of
+          the new Hook-Name facility. (0d0b000)
+        * Add an optional Hook-Name field to hook files, thereby allowing
+          multiple hooks to attach to the same virtual name.
+          (1ce5605)
+        * Make removal of old links for single-version hooks work even when
+          the application ID is not a prefix of the pattern's
+          basename. (081d3bd)
+
+2013-08-05 Colin Watson
+
+        * MIME type declaration fixes LP: #1205346. (0ba09a5)
+        * Remove comment rendered stale by shipping our own MIME type
+          declaration. (778f6c2)
+        * Declare the application/x-click MIME type, since the
+          shared-mime-info upstream would rather not take the patch
+          there at this point
+          (https://bugs.freedesktop.org/show_bug.cgi?id=66689).
+          (7a9a0ad)
+        * Insert a new "_click-binary" ar member immediately after
+          "debian-binary"; this allows detecting the MIME type of a
+          Click package even when it doesn't have the extension
+          ".click". (31fca4a)
+
+2013-07-30 Colin Watson
+
+        * releasing version 0.2.10 (24f8997)
+        * Rephrase click.tests.test_hooks to avoid relying on Unicode
+          literals. (1f7183c)
+        * Treat manifests as UTF-8. (94867e1)
+        * Don't encode non-ASCII characters in JSON dumps. (09b781a)
+        * Force click's stdout encoding to UTF-8 regardless of the locale.
+          (7baf993)
+
+2013-07-29 Colin Watson
+
+        * releasing version 0.2.9 (b571332)
+        * Remove old links for single-version hooks when installing new
+          versions (LP: #1206115). (b12fff6)
+        * Handle the case where the clickpkg user cannot read the .click
+          file, using some LD_PRELOAD trickery to allow passing it
+          as a file descriptor opened by the privileged process (LP:
+          #1204523). (8867dc2)
+        * Tolerate dangling source symlinks in "click desktophook". (e7b4660)
+
+2013-07-25 Colin Watson
+
+        * releasing version 0.2.8 (e4c53e4)
+        * Actually install
+          /var/lib/polkit-1/localauthority/10-vendor.d/com.ubuntu.click.pkla
+          in the packagekit-plugin-click binary package. (0ee1e57)
+
+2013-07-24 Colin Watson
+
+        * Check in advance whether the root is writable by the clickpkg user,
+          not just by root, and do so in a way less vulnerable to
+          useful exception text being eaten by a subprocess
+          preexec_fn (LP: #1204570). (d4205fd)
+        * releasing version 0.2.7 (4a6b15e)
+        * Fix error message when rejecting "_" from a package name or version
+          (LP: #1204560). (f601bc0)
+        * releasing version 0.2.6 (bd55250)
+        * Adjust written .desktop files to avoid tickling some bugs in Unity
+          8's parsing. (d3458e1)
+        * releasing version 0.2.5 (566d2dc)
+        * Ensure that ~/.local/share/applications exists if we need to write
+          any .desktop files. (7d58796)
+
+2013-07-23 Colin Watson
+
+        * releasing version 0.2.4 (4412ae8)
+        * Fix Icon mangling. (c49af9c)
+        * Add a "--" separator between aa-exec's options and the subsidiary
+          command, per Jamie Strandboge. (a3c466f)
+        * Mangle Icon in .desktop files to point to an absolute path within
+          the package unpack directory if necessary. (091c384)
+        * releasing version 0.2.3 (421d6d6)
+        * When running a hook, set HOME to the home directory of the user the
+          hook is running as. (d856053)
+        * Revert part of geteuid() change in 0.2..
+          ClickUser._drop_privileges and
+          ClickUser._regain_privileges need to check the real UID,
+          or else they will never regain privileges. (928dde4)
+        * Set Path in generated .desktop files to the top-level package
+          directory. (c4c4198)
+        * releasing version 0.2.2 (585ab5f)
+        * Add a user-level hook to create .desktop files in
+          ~/.local/share/applications/.  (This should probably move
+          to some other package at some point.) (aee0595)
+        * Use geteuid() rather than getuid() in several places to check
+          whether we need to drop or regain privileges. (7f857f1)
+        * Avoid ClickUser.__iter__ infecting its caller with dropped
+          privileges. (491124e)
+        * dh_click: Support --name option. (e2addb7)
+
+2013-07-22 Colin Watson
+
+        * releasing version 0.2.1 (33ef73e)
+        * Add "click pkgdir" command to print the top-level package directory
+          from either a package name or a path within a packag.
+          based on work by Ted Gould, for which thanks. (622bba2)
+        * Extend "click pkgdir" to take a path within a package. (f4f0868)
+        * Refuse to install .click directories at any level, not just the
+          top. (7efeca8)
+        * Remove HOME from environment when running dpkg, so that it doesn't
+          try to read .dpkg.cfg from it (which may fail when
+          dropping privileges from root and produce a warning
+          message). (7bdcdda)
+        * Convert "click pkgdir" to use per-user lookup. (d9cae28)
+        * Make root for "click pkgdir" configurable. (13d515e)
+        * Rename package-directory command to pkgdir; (a) I prefer shorter
+          names, (b) avoiding "-" in the command name will make it
+          easier to write tests importing this module. (5f76bcb)
+        * typo (b2beaef)
+        * merge lp:~ted/click/pkg-dir-placeholder (03f4a9f)
+
+2013-07-21 Colin Watson
+
+        * Fix "click help list". (e66f9bc)
+
+2013-07-19 Colin Watson
+
+        * releasing version 0.2.0 (0681f75)
+        * Reject '_' and '/' characters in all of package name, application
+          name, and package version. (57ec9b1)
+        * Create containing directory for user-level hook symlinks. (7392282)
+        * Run user-level hooks properly. (d636c14)
+        * Revise and implement hooks specification.  While many things have
+            changed, the previous version was never fully
+          implemented.  However, I   have incremented the default
+          Click-Version value to 0.2 to reflect the   design work.
+          - The "hooks" manifest key now contains a dictionary keyed
+          by     application name.  This means manifest authors have
+          to repeat     themselves much less in common cases.   -
+          There is now an explicit distinction between system-level
+          and     user-level hooks.  System-level hooks may reflect
+          multiple concurrent     versions, and require a user name.
+            - Hook symlinks are now named by a combination of the
+          Click package     name, the application name, and the
+          Click package version.   - The syntax of Pattern has
+          changed to make it easier to extend with new
+          substitutions. (fcdad59)
+        * click.install: remove dead code (278fc8b)
+        * todo: manifest template generation, requested by SDK team (9575e59)
+
+2013-07-18 Colin Watson
+
+        * releasing version 0.1.7 (6940070)
+        * Correct name of .pkla file (now
+          /var/lib/polkit-1/localauthority/10-vendor.d/com.ubuntu.click.pkla).
+          (e92571e)
+        * releasing version 0.1.6 (cbd5dfc)
+        * Remove any stray *.pyc files on clean; these may be created by
+          ./run-tests. (10a1bdd)
+        * Install /var/lib/polkit-1/localauthority/10-vendor.d/10-click.pkla
+          to allow the phablet user to install Click packages
+          without being known to logind, as a temporary workaround.
+          (ee9c03e)
+        * Move defaults for frameworks and hooks directories to click.paths.
+          (1db4640)
+
+2013-07-17 Colin Watson
+
+        * releasing version 0.1.5 (5181205)
+        * When all the files requested for installation are Click packages,
+          override org.freedesktop.packagekit.package-install*
+          PolicyKit actions to com.ubuntu.click.package-install,
+          defined with a more open default policy.  (This requires
+          some backports to PackageKit, not in the archive yet.)
+          (4497d06)
+        * Fix infinite recursion in ClickUser.click_pw. (868dfc9)
+
+2013-07-15 Colin Watson
+
+        * releasing version 0.1.4 (edb4495)
+        * pk-plugin: remove requirement for gdebi (7c34719)
+        * pk-plugin: explicitly finish backend when skipping native backend,
+          otherwise transaction signals are not all disconnected
+          (efd14fc)
+        * pk-plugin: reset native backend at start of transaction processing
+          (7660887)
+        * pk-plugin: g_get_environ may return NULL (ef1fdee)
+        * Add a packagekit-plugin-click binary package. (55f3e39)
+        * debian/control: reflect version requirements for packagekit-plugin
+          in libpackagekit-glib2-dev build-deps (a5a7234)
+        * configure.ac: note version requirements for packagekit-plugin
+          (d5d22ea)
+        * pk-plugin: implement PK_ROLE_ENUM_GET_PACKAGES (a315c3f)
+
+2013-07-14 Colin Watson
+
+        * pk-plugin: remove unnecessary test (c8af185)
+        * click.commands.list: add a --manifest option (bcf79fe)
+        * Add a simple "click list" command. (7e2d781)
+        * Reduce noise at top level: move auxiliary build tools to
+          build-aux/. (923f128)
+        * Make the default root directory a configure option. (5435131)
+
+2013-07-13 Colin Watson
+
+        * Adjust tests to pass with mock 0.7.2 (as in Ubuntu 12.04 LTS).
+          (2197368)
+        * pk-plugin: add README (5f0b94e)
+        * Restore compatibility with Python 3.2 (LP: #1200670). (580b7e4)
+
+2013-07-12 Colin Watson
+
+        * pk-plugin: check content-type rather than extension (71fe2a8)
+        * Initial version of a PackageKit plugin; still experimental and not
+          packaged anywhere yet. (95bd401)
+        * Adjust preload handling for autotools build system. (07df5af)
+        * Update ignores. (970d81b)
+        * Add an empty m4 directory to stop aclocal complaining. (0e377fe)
+        * Make click-dev Architecture: any to avoid binNMU irritation.
+          (0e0308b)
+        * Move debhelper handling to autotools; it's considerably less clunky
+          there than in setup.py. (8563109)
+        * configure.ac: compute version from debian/changelog (dc6385c)
+        * Add an autotools-based build system for our C components. (9a99032)
+
+2013-07-11 Ted Gould
+
+        * Drop a tab (8528b64)
+        * Dropping the external utility (6e53427)
+        * Add a package-directory command (63466c9)
+        * Add to the click package install (ee31a4f)
+        * Dummy script to give the package directory.  Will need to do much
+          more in the future. (8ceeb58)
+
+2013-07-09 Colin Watson
+
+        * click.user: move per-user database directory to
+          /opt/click.ubuntu.com/.click/users/$user (443d73f)
+        * click.install: fix tests (d2330b8)
+        * Move install log file from $root/.click.log to $root/.click/log.
+          (80f2ce5)
+        * click.install: fix swapped arguments (f2f494b)
+        * click.commands.register: add --user option (c3107a0)
+        * Add support for per-user package registration. (4c64139)
+        * click.install: simplify slightly (4b8c2e3)
+
+2013-07-08 Colin Watson
+
+        * todo: misc updates (a6da0bd)
+        * releasing version 0.1.3 (3096352)
+
+2013-06-27 Colin Watson
+
+        * Rename to click, per Mark Shuttleworth. (ec876c4)
+
+2013-06-26 Colin Watson
+
+        * todo: drop localised metadata; this will be handled server-side
+          (86fcbfd)
+
+2013-06-25 Colin Watson
+
+        * releasing version 0.1.2 (c244680)
+        * Disable dh_sphinxdoc for builds that are not building
+          architecture-independent packages. (e32d977)
+        * releasing version 0.1.1 (4ca45a9)
+        * clickpackage.tests.test_install: Set NO_PKG_MANGLE when building
+          fake packages, to avoid having Maintainer fields mangled
+          on the buildds. (31b161b)
+
+2013-06-24 Colin Watson
+
+        * releasing version 0.1 (60bd3b1)
+        * copy-edit (37285c0)
+        * new optional keys do not imply version bump (5da0ed8)
+        * Rename (single-line, synopsis) "description" to "title"; reserve
+          "description" for extended description; document both, as
+          well as an extension mechanism. (048d00d)
+        * file-format: remove excessively preliminary language (5febc56)
+
+2013-06-20 Colin Watson
+
+        * doc/todo.rst: drop item for reprocessing hooks on
+          whole-image-update; this is irrelevant since that layout
+          will have a read-only system partition in normal operation
+          (dc02f03)
+
+2013-06-19 Colin Watson
+
+        * Add "click-package contents", a trivial wrapper around "dpkg-deb
+          -c". (b92fd33)
+        * clickpackage.install, doc/file-format.rst: Make the manifest the
+          primary source of information for most purposes. (9a84f62)
+        * Remove Click-Framework control field and rely on framework manifest
+          key. (4b06035)
+        * doc/file-format.rst: document manifest control file (5e03a35)
+        * Move manifest.json to the control area; add basic auditing of it in
+          clickpackage.install; add a "click-package info" command
+          to inspect it. (58ace2d)
+        * clickpackage.build: convert some manifest-derived attributes into
+          properties (be05541)
+        * debian/rules: Support cross-compiling the preload library.
+          (b78c8b3)
+
+2013-06-18 Colin Watson
+
+        * clickpackage.build: strip epochs from versions when constructing
+          file names (ba74c32)
+
+2013-06-14 Colin Watson
+
+        * preload/clickpreload.c: Allow opening /dev/tty for writing, to
+          tolerate situations where dpkg-deb is a wrapper bash
+          script (pkgbinarymangler). (110db34)
+        * preload/clickpreload.c: Make sandboxing failures clearer. (d3e66eb)
+        * todo: blank lines to keep restructuredtext happy (0183a0a)
+        * clickpackage.install: Raise a clearer exception when the
+          click-install root directory is unwriteable. (82087de)
+        * todo: some items from Alex (b5f50be)
+        * merge lp:~sergiusens/click-package/exclude (e66a178)
+
+2013-06-13 Sergio Schvezov
+
+        * Adding .bzr-builddeb to the exclude list for source packages
+          (862233f)
+
+2013-06-13 Colin Watson
+
+        * Only require mock for Python < 3.3. (48b7d18)
+        * Bump debhelper Build-Depends to match debian/compat. (286911d)
+
+2013-06-12 Colin Watson
+
+        * todo: source packages done, at least skeletally (4838867)
+        * todo: developer ID (d4e3c86)
+        * Rename source to buildsource, to make way for a possible future
+          command to automatically find and download source.
+          (84105d7)
+        * clickpackage.build, clickpackage.commands.source: Add a simple
+          subcommand to build source packages. (c0b2af4)
+        * clickpackage.build: package symlinks as symlinks, not as their
+          contents (45383d2)
+        * clickpackage.preinst: fix pyflakes warnings (f78656e)
+
+2013-06-05 Colin Watson
+
+        * Make "click-package help" and "click-package help COMMAND" work.
+          (3e95739)
+        * Convert the multiple click-* commands to a single click-package
+          wrapper command. (dcafab8)
+
+2013-05-31 Colin Watson
+
+        * Drop privileges to a new "clickpkg" user when unpacking. (d8a9ed0)
+        * doc/todo.rst: fix nested bullet list indentation (aed1e4c)
+
+2013-05-30 Colin Watson
+
+        * doc/todo.rst: fix hyperlink syntax (38e31ad)
+        * doc/todo.rst: elaborate on delta updates (c0be7c4)
+
+2013-05-28 Colin Watson
+
+        * hack around tox failure with ./setup.py install_data (b99d299)
+        * Add a dh_clickpackage command. (53e2969)
+        * debian/copyright: GPLv3, not "or later" (8f31f14)
+        * ignore package build files (25f0bc9)
+        * Add a click-package-doc package. (399cd1f)
+        * Move usr/share/click-package/frameworks to
+          debian/click-package-common.dirs, fixing the package
+          build. (8476a34)
+        * Add facility for installing/removing all packages relevant to a
+          hook, and add a click-hook command to drive this.
+          (ad3b59b)
+        * setup.py: add click-verify to scripts (cb02da1)
+
+2013-05-27 Colin Watson
+
+        * clickpackage.hooks: add run_hooks to __all__ (bdd1f26)
+        * Simplify handling of temporary hooks directory in tests. (a9dc225)
+        * doc/hooks.rst: Exec commands must be idempotent (1420979)
+        * Implement most of draft hooks proposal. (3192f64)
+
+2013-05-21 Colin Watson
+
+        * doc/hooks.rst: install/upgrade/removal details (14d42c7)
+        * doc/hooks.rst: document exit status of Exec commands (a011137)
+        * doc/hooks.rst: remove Hook field, which is redundant with the file
+          name (8dbb56d)
+        * clickpackage.install: make frameworks_dir a class attribute
+          (850fb81)
+
+2013-05-20 Colin Watson
+
+        * Try to prevent dpkg from accidentally ascending beyond the
+          installation directory. (d28526b)
+
+2013-05-14 Colin Watson
+
+        * clickpackage.tests.test_install: remove stray *args (fd52cf1)
+        * todo: sandbox (61226a6)
+        * todo: source packages (3ef6003)
+        * create /usr/share/click-package/frameworks directory, by way of
+          documentation (8cd0987)
+        * doc/file-format.rst: note file format as draft (6315c9c)
+
+2013-05-13 Colin Watson
+
+        * clickpackage.install: unpack to per-version directories (8ea7a60)
+        * add click-verify to click-install package (c4621d7)
+        * base system -> system frameworks (ff68816)
+        * todo (5b3438c)
+        * turn frameworks into tests for file presence in
+          /usr/share/click-package/frameworks/*.framework (d90d75f)
+        * rename again, this time to Click-Framework to match listaller et al
+          (e79d616)
+
+2013-05-09 Colin Watson
+
+        * rename Click-Base-System to Click-Profile, which seems a slightly
+          better name (e5b0a09)
+        * click-install: unpack to subdirectories of /srv/apps.ubuntu.com by
+          default (649d69e)
+
+2013-05-07 Colin Watson
+
+        * doc/hooks.rst: use reverse-domain-style package names (db5ec09)
+        * Remove .tox on clean. (249d476)
+        * clickpackage.tests.test_build: follow new package naming convention
+          (8595d6c)
+        * doc/file-format.rst: document application identifiers (aeb25f7)
+
+2013-05-03 Colin Watson
+
+        * clickpackage.install: no need for --status-fd integration; only
+          progress support will be for download (ee86a12)
+        * metadata.json -> manifest.json (cc09a1c)
+
+2013-05-02 Colin Watson
+
+        * drop Python 2.6 and 3.2 compatibility; we will not need to backport
+          this to pre-raring (b9a3023)
+        * click-verify: new script; equivalent to just the audit part of
+          click-install (49733d6)
+
+2013-04-18 Barry Warsaw
+
+        * Enable multi-Python version testing through tox, and restore Python
+          2.6 compatibility. (5e33112)
+
+2013-04-16 Barry Warsaw
+
+        * Minor additional tweaks. (0d5b20e)
+        * Update documentation (c63b54a)
+        * Get the tests to run under tox so that we can ensure they pass
+          under Python 2.6, 2.7, 3.2, and 3.3.  Among the changes
+          necessary include: (3180f14)
+        * trunk merge (dcb3dcc)
+        * Merge docs-n-stuff branch. (fa1488e)
+        * Changes based on feedback from Colin. (e10f84f)
+
+2013-04-16 Colin Watson
+
+        * clickpackage.arfile: remove stale builtins.open handling (49c89ae)
+
+2013-04-15 Barry Warsaw
+
+        * Even Python 2.7 has unittest.skipUnless.;  Precise has Python
+          2.7, so we don't need unittest2;  Add an __all__;  Use
+          contextlib.closing() for readability.;  Iteration over
+          mappings is already defined to use .keys();  Default
+          arguments should never be mutables.;  .format() instead of
+          %-interpolation (da252f1)
+        * Don't need the shebang line in this file. (4363a75)
+        * Add link. (ec5e868)
+        * Make the context manager `make_temp_dir()` safer against possible
+          errors.;  Run pep8 and pyflakes programmatically to save
+          on subprocess costs.  (But   see pep8 upstream issue 103
+          for why we ignore E123);  Add __all__'s and use skipIf()
+          for better unittest skipping. (da92ab8)
+        * typo (251d047)
+        * small typo (e9a4b0c)
+        * Ignore the doc/ subdirectory for PEP 8 checks.;  One test
+          requires umask 022 (f419a9f)
+        * whitespace (f0a9567)
+        * Sphinx-ify the initial documentation. (417da04)
+        * Rename documentation files to include .rst suffix and
+          reStructuredText-ify   them.;  Add an intro doc. (f1f7792)
+        * dlsym(2) recommends calling dlerror() to clear any error condition
+          first. Probably not strictly needed, but more correct.
+          (ed66bf0)
+
+2013-04-15 Colin Watson
+
+        * Run with python3 by default.  (You can still run these scripts with
+          Python 2, though.) (6171073)
+
+2013-04-12 Colin Watson
+
+        * clickpackage.install: cope with the case where LD_PRELOAD is
+          already set (5ae58fd)
+        * clickpackage.install: avoid instantiating debcontrol twice
+          (d940c05)
+        * clickpackage.build: filter out attempts to include .click at top
+          level (5bde353)
+        * file-format: useless word (b82fb3e)
+        * file-format: more wordsmithing (6e032e0)
+        * file-format: fix spacing (cefea4e)
+        * file-format: more qualification (2cea783)
+        * doc/constraints: improve phrasing (900d8f2)
+        * clickpackage.install: more generic naming (caba338)
+        * doc/file-format: some rephrasing thanks to Stuart Langridge
+          (a48569b)
+        * add note about fsync/sync_file_range and reliability (141a437)
+        * clickpackage.build: force metadata.json mode to 0644 (087ce60)
+        * merge lp:~lool/click-package/check-for-preload (97f97bb)
+
+2013-04-12 Loïc Minier
+
+        * Warn before running tests that some tests need the preload bits.
+          (b5c2e76)
+        * Skip ClickPackager.install test if preload bits aren't available.
+          (d2deb59)
+        * Split discovery of preload path in separate function to use in
+          tests. (5c3ac45)
+
+2013-04-11 Colin Watson
+
+        * some TODOs (4fcc1d0)
+        * design notes on hooks (cbf21bd)
+        * click-build, clickpackage.build: read metadata from metadata.json
+          by default, removing hardcoding (264e458)
+        * click-install: take top-level directory as a command-line parameter
+          (94adcd5)
+
+2013-04-10 Colin Watson
+
+        * initial notes on hooks (5f7d719)
+        * stub out getpwnam and getgrnam (for now) (6df2415)
+        * refactor repeated dlsym boilerplate (d97ebfe)
+        * use effective uid instead of real uid, and cache it (6f280f1)
+        * stub sync_file_range too (1337299)
+        * update file-format spec to describe preinst handling (979e45c)
+        * Initial commit. (32d2760)

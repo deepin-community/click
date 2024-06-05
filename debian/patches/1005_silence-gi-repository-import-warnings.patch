@@ -1,0 +1,214 @@
+Description: Silence gi.require_version warnings during unit tests.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+
+--- a/click_package/commands/build.py
++++ b/click_package/commands/build.py
+@@ -22,6 +22,8 @@
+ import sys
+ import subprocess
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ from click_package.build import ClickBuildError, ClickBuilder
+ 
+--- a/click_package/commands/desktophook.py
++++ b/click_package/commands/desktophook.py
+@@ -23,6 +23,8 @@
+ from optparse import OptionParser
+ import os
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ from click_package import osextras
+--- a/click_package/commands/framework.py
++++ b/click_package/commands/framework.py
+@@ -19,6 +19,8 @@
+ 
+ from argparse import ArgumentParser
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ 
+--- a/click_package/commands/hook.py
++++ b/click_package/commands/hook.py
+@@ -21,6 +21,8 @@
+ import sys
+ from textwrap import dedent
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click, GLib
+ 
+ 
+--- a/click_package/commands/info.py
++++ b/click_package/commands/info.py
+@@ -24,6 +24,8 @@
+ import os
+ import sys
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ from click_package.install import DebFile
+--- a/click_package/commands/install.py
++++ b/click_package/commands/install.py
+@@ -21,6 +21,8 @@
+ import sys
+ from textwrap import dedent
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ from click_package.install import ClickInstaller, ClickInstallerError
+--- a/click_package/commands/list.py
++++ b/click_package/commands/list.py
+@@ -21,6 +21,8 @@
+ from optparse import OptionParser
+ import sys
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ from click_package.json_helpers import json_array_to_python
+--- a/click_package/commands/pkgdir.py
++++ b/click_package/commands/pkgdir.py
+@@ -21,6 +21,8 @@
+ from optparse import OptionParser
+ import sys
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ 
+--- a/click_package/commands/register.py
++++ b/click_package/commands/register.py
+@@ -19,6 +19,8 @@
+ 
+ from optparse import OptionParser
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click, GLib
+ 
+ 
+--- a/click_package/commands/unregister.py
++++ b/click_package/commands/unregister.py
+@@ -21,6 +21,8 @@
+ import os
+ import sys
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ 
+--- a/click_package/tests/helpers.py
++++ b/click_package/tests/helpers.py
+@@ -42,6 +42,8 @@
+ except ImportError:
+     import mock
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click, GLib
+ 
+ from click_package.tests import gimock
+--- a/click_package/tests/test_database.py.in
++++ b/click_package/tests/test_database.py.in
+@@ -31,6 +31,8 @@
+ import os
+ import unittest
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click, GLib
+ from six import integer_types
+ 
+--- a/click_package/tests/test_framework.py
++++ b/click_package/tests/test_framework.py
+@@ -25,6 +25,8 @@
+ 
+ import os
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ from click_package.tests.helpers import TestCase, touch
+--- a/click_package/tests/test_hooks.py
++++ b/click_package/tests/test_hooks.py
+@@ -33,6 +33,8 @@
+ import os
+ from textwrap import dedent
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click, GLib
+ 
+ from click_package.tests.gimock_types import Passwd
+--- a/click_package/tests/test_install.py
++++ b/click_package/tests/test_install.py
+@@ -38,6 +38,9 @@
+ from unittest import skipUnless
+ 
+ from debian.deb822 import Deb822
++
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ from click_package.arfile import ArFile
+--- a/click_package/tests/test_osextras.py
++++ b/click_package/tests/test_osextras.py
+@@ -24,6 +24,8 @@
+ 
+ import os
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click, GLib
+ 
+ from click_package import osextras
+--- a/click_package/tests/test_paths.py.in
++++ b/click_package/tests/test_paths.py.in
+@@ -25,7 +25,8 @@
+     'TestClickPaths',
+     ]
+ 
+-
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ from click_package.tests.helpers import TestCase
+--- a/click_package/tests/test_query.py
++++ b/click_package/tests/test_query.py
+@@ -23,6 +23,8 @@
+ 
+ import os
+ 
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click
+ 
+ from click_package.tests.helpers import TestCase, touch
+--- a/click_package/tests/test_user.py
++++ b/click_package/tests/test_user.py
+@@ -40,6 +40,8 @@
+ for xdgdir in ("XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME"):
+     os.environ[xdgdir] = os.path.join(xdg_tempdir, xdgdir)
+ # ensure this is imported after the environment manipulation
++import gi
++gi.require_version('Click', '0.4')
+ from gi.repository import Click, GLib
+ 
+ from click_package.json_helpers import (

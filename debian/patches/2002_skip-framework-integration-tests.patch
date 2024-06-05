@@ -1,0 +1,15 @@
+Description: Ignore /usr/share/clicks/frameworks/.placeholder file in unit tests.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Forwarded: not needed, Debian-specific
+
+--- a/click_package/tests/integration/test_frameworks.py
++++ b/click_package/tests/integration/test_frameworks.py
+@@ -25,7 +25,7 @@
+     def setUp(self):
+         super(TestFrameworks, self).setUp()
+         if (not os.path.exists("/usr/share/click/frameworks") or
+-                not os.listdir("/usr/share/click/frameworks")):
++                not [ item for item in os.listdir("/usr/share/click/frameworks") if item != '.placeholder' ]):
+             self.skipTest("Please install ubuntu-sdk-libs")
+ 
+     def test_framework_list(self):

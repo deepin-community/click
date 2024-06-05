@@ -1,22 +1,244 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: template-repository
-Source: https://github.com/deepin-community/template-repository
+Upstream-Name: click
+Upstream-Contact:  UBports developers <devs@ubports.com>
+Source: https://gitlab.com/ubports/development/core/click/
 
-Files: *
-Copyright: 2023 Tsic404 <liuheng@deepin.org>
-License: GPL-2+
- This package is free software; you can redistribute it and/or modify
+Files: .coveragerc
+ .gitignore
+ AUTHORS
+ ChangeLog
+ MANIFEST.in
+ Makefile.am
+ Makefile.am.coverage
+ README
+ VERSION
+ autogen.sh
+ click-service/Makefile.am
+ click-service/com.lomiri.click.conf
+ click-service/com.lomiri.click.service.in
+ click-service/com.lomiri.click.xml
+ click-service/tests/Makefile.am
+ click-service/tests/dbs/remove-click-not-exists.sh.in/.gitkeep
+ click-service/tests/dbs/remove-click-not-installed.sh.in/.gitkeep
+ click-service/tests/dbs/remove-click-preinstalled.sh.in/all.upgraded.ubports/0.2/.gitkeep
+ click-service/tests/dbs/remove-click-preinstalled.sh.in/both.upgraded.ubports/0.2/.gitkeep
+ click-service/tests/dbs/remove-click-preinstalled.sh.in/user.upgraded.ubports/0.2/.gitkeep
+ click-service/tests/dbs/remove-click-preinstalled.sh.preinstalled/all.upgraded.ubports/0.1/.gitkeep
+ click-service/tests/dbs/remove-click-preinstalled.sh.preinstalled/both.upgraded.ubports/0.1/.gitkeep
+ click-service/tests/dbs/remove-click-preinstalled.sh.preinstalled/preinstalled.ubports/0.1/.gitkeep
+ click-service/tests/dbs/remove-click-preinstalled.sh.preinstalled/user.upgraded.ubports/0.1/.gitkeep
+ click-service/tests/dbs/remove-click.sh.in/inall.ubports/0.1/.gitkeep
+ click-service/tests/dbs/remove-click.sh.in/inboth.ubports/0.1/.gitkeep
+ click-service/tests/dbs/remove-click.sh.in/inuser.ubports/0.2/.gitkeep
+ click_package/tests/integration/__init__.py
+ click_package/tests/integration/data/evil-keyring/pubring.gpg
+ click_package/tests/integration/data/evil-keyring/secring.gpg
+ click_package/tests/integration/data/evil-keyring/trustdb.gpg
+ click_package/tests/integration/data/origin-keyring/pubring.gpg
+ click_package/tests/integration/data/origin-keyring/secring.gpg
+ click_package/tests/integration/data/origin-keyring/trustdb.gpg
+ click-service/tests/install-click-no-perms.sh
+ click-service/tests/install-click-not-exists.sh
+ click-service/tests/install-click.sh
+ click-service/tests/remove-click-not-installed.sh
+ click-service/tests/remove-click-preinstalled.sh
+ click-service/tests/remove-click.sh
+ click_package/Makefile.am
+ click_package/__init__.py
+ click_package/tests/Makefile.am
+ click_package/tests/__init__.py
+ click_package/tests/preload.h
+ conf/Makefile.am
+ conf/databases/10_core.conf
+ conf/databases/20_custom.conf
+ conf/databases/99_default.conf.in
+ conf/databases/Makefile.am
+ configure.ac
+ debhelper/Makefile.am
+ debhelper/click.pm
+ debhelper/postinst-click
+ debhelper/prerm-click
+ doc/Makefile
+ doc/conf.py
+ doc/constraints.rst
+ doc/databases.rst
+ doc/file-format.rst
+ doc/hooks.rst
+ doc/index.rst
+ doc/manpage.rst
+ doc/todo.rst
+ get-version
+ init/Makefile.am
+ init/systemd/Makefile.am
+ init/systemd/click-system-hooks.service.in
+ init/systemd/click-user-hooks.service.in
+ lib/Makefile.am
+ lib/click/Makefile.am
+ lib/click/click.sym
+ lib/click/valac-wrapper.in
+ m4/gcov.m4
+ merge-coverage
+ preload/Makefile.am
+ run-click
+ run-tests
+ schroot/Makefile.am
+ schroot/fstab
+ setup.py.in
+ tox.ini
+Copyright: 2013-2014, Canonical Ltd.
+License: GPL-3
+Comment:
+ Files come without license/copyright information, assuming
+ license and copyright holdership from other code files.
+
+Files: bin/click
+ click_package/arfile.py
+ click_package/build.py
+ click_package/chroot.py
+ click_package/commands/__init__.py
+ click_package/commands/build.py
+ click_package/commands/buildsource.py
+ click_package/commands/chroot.py
+ click_package/commands/contents.py
+ click_package/commands/desktophook.py
+ click_package/commands/framework.py
+ click_package/commands/hook.py
+ click_package/commands/info.py
+ click_package/commands/install.py
+ click_package/commands/list.py
+ click_package/commands/pkgdir.py
+ click_package/commands/register.py
+ click_package/commands/unregister.py
+ click_package/commands/verify.py
+ click_package/framework.py
+ click_package/install.py
+ click_package/json_helpers.py
+ click_package/osextras.py
+ click_package/paths.py.in
+ click_package/preinst.py
+ click_package/tests/config.py.in
+ click_package/tests/gimock.py
+ click_package/tests/gimock_types.py
+ click_package/tests/integration/helpers.py
+ click_package/tests/integration/test_build.py
+ click_package/tests/integration/test_buildsource.py
+ click_package/tests/integration/test_contents.py
+ click_package/tests/integration/test_frameworks.py
+ click_package/tests/integration/test_hook.py
+ click_package/tests/integration/test_info.py
+ click_package/tests/integration/test_install.py
+ click_package/tests/integration/test_list.py
+ click_package/tests/integration/test_signatures.py
+ click_package/tests/integration/test_verify.py
+ click_package/tests/test_arfile.py
+ click_package/tests/test_build.py
+ click_package/tests/test_database.py
+ click_package/tests/test_framework.py
+ click_package/tests/test_hooks.py
+ click_package/tests/test_install.py
+ click_package/tests/test_osextras.py
+ click_package/tests/test_paths.py.in
+ click_package/tests/test_query.py
+ click_package/tests/test_scripts.py
+ click_package/tests/test_static.py
+ click_package/tests/test_user.py
+ click_package/versions.py
+ lib/click/click-0.4.pc.in
+ lib/click/database.vala
+ lib/click/deb822.vala
+ lib/click/framework.vala
+ lib/click/hooks.vala
+ lib/click/osextras.vala
+ lib/click/paths.vala.in
+ lib/click/posix-extra.vapi
+ lib/click/query.vala
+ lib/click/user.vala
+ preload/clickpreload.c
+Copyright: 2013, Canonical Ltd.
+  2013-2014, Canonical Ltd.
+  2014, Canonical Ltd.
+License: GPL-3
+
+Files: click-service/main.c
+ click-service/tests/bin/click
+ click-service/tests/test-fixure-wrapper.sh
+ click-service/tests/test-runner.sh
+Copyright: 2022, Guido Berhoerster <guido+ubports@berhoerster.name>
+  2023, Guido Berhoerster <guido+ubports@berhoerster.name>
+License: GPL-3
+
+Files: click_package/tests/helpers.py
+Copyright: 2013, Canonical Ltd.
+License: PSF and GPL-3
+
+Files: debhelper/dh_click
+Copyright: 2013, Canonical Ltd.
+License: GPL-3
+
+Files: click_package/commands/migrate.py
+Copyright: 2022, UBports Foundation
+License: GPL-3
+
+Files: debian/*
+Copyright: 2013-2014, Canonical Ltd.
+  2021-2024, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+License: GPL-3
+
+License: GPL-3
+ This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
+ the Free Software Foundation; version 3 of the License.
  .
- This package is distributed in the hope that it will be useful,
+ This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  .
  You should have received a copy of the GNU General Public License
- along with this program. If not, see <https://www.gnu.org/licenses/>
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  .
- On Debian systems, the complete text of the GNU General
- Public License version 2 can be found in "/usr/share/common-licenses/GPL-2".
+ A copy of the GNU General Public License version 3 is available in
+ /usr/share/common-licenses/GPL-3.
+
+License: PSF
+ 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
+    the Individual or Organization ("Licensee") accessing and otherwise using Python
+    3.x software in source or binary form and its associated documentation.
+ .
+ 2. Subject to the terms and conditions of this License Agreement, PSF hereby
+    grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,
+    analyze, test, perform and/or display publicly, prepare derivative works,
+    distribute, and otherwise use Python 3.x alone or in any derivative
+    version, provided, however, that PSF's License Agreement and PSF's notice of
+    copyright, i.e., "Copyright © 2001-2023 Python Software Foundation; All Rights
+    Reserved" are retained in Python 3.x alone or in any derivative version
+    prepared by Licensee.
+ .
+ 3. In the event Licensee prepares a derivative work that is based on or
+    incorporates Python 3.x or any part thereof, and wants to make the
+    derivative work available to others as provided herein, then Licensee hereby
+    agrees to include in any such work a brief summary of the changes made to Python
+    3.x.
+ .
+ 4. PSF is making Python 3.x available to Licensee on an "AS IS" basis.
+    PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.  BY WAY OF
+    EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND DISCLAIMS ANY REPRESENTATION OR
+    WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE
+    USE OF PYTHON 3.x WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
+ .
+ 5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON 3.x
+    FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF
+    MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 3.x, OR ANY DERIVATIVE
+    THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+ .
+ 6. This License Agreement will automatically terminate upon a material breach of
+    its terms and conditions.
+ .
+ 7. Nothing in this License Agreement shall be deemed to create any relationship
+    of agency, partnership, or joint venture between PSF and Licensee.  This License
+    Agreement does not grant permission to use PSF trademarks or trade name in a
+    trademark sense to endorse or promote products or services of Licensee, or any
+    third party.
+ .
+ 8. By copying, installing or otherwise using Python 3.x, Licensee agrees
+    to be bound by the terms and conditions of this License Agreement.

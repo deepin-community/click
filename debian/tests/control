@@ -1,0 +1,16 @@
+Tests: run-tests.sh
+Depends:
+ click,
+ click-dev,
+ debootstrap,
+ debsig-verify,
+ debsigs,
+ iputils-ping,
+ kmod,
+ libclick-dev,
+ python3-click-package,
+ python3-six,
+ schroot,
+ sudo,
+ @builddeps@,
+Restrictions: needs-root allow-stderr

@@ -1,4 +1,71 @@
-#!/usr/bin/make -f
+#! /usr/bin/make -f
+
+NULL=
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
+
+# The advantages of -Wl,-Bsymbolic-functions are of limited value here, and
+# they mean that the test suite's LD_PRELOAD tricks don't work properly.
+export DEB_LDFLAGS_MAINT_STRIP := -Wl,-Bsymbolic-functions
 
 %:
-	dh $@
+	dh $@ --with autoreconf,gir,python3,sphinxdoc \
+	      --buildsystem autoconf $(EXTRA_DH_OPTIONS)
+
+PY3REQUESTED := $(shell py3versions -r)
+PY3DEFAULT := $(shell py3versions -d)
+# Run setup.py with the default python3 last so that the scripts use
+# #!/usr/bin/python3 and not #!/usr/bin/python3.X.
+PY3 := $(filter-out $(PY3DEFAULT),$(PY3REQUESTED)) python3
+
+confflags := \
+	--with-python-interpreters='$(PY3)' \
+	--with-systemdsystemunitdir=/usr/lib/systemd/system \
+	--with-systemduserunitdir=/usr/lib/systemd/user \
+	--with-default-root=/var/lib/clickpkg \
+	$(NULL)
+
+override_dh_autoreconf:
+	dh_autoreconf -- ./autogen.sh
+
+override_dh_auto_configure:
+	dh_auto_configure -- $(confflags)
+
+override_dh_auto_build:
+	dh_auto_build
+	$(MAKE) -C doc subst DEFAULT_ROOT=/var/lib/clickpkg
+	$(MAKE) -C doc html man
+
+override_dh_auto_clean:
+	dh_auto_clean
+	if [ -f doc/Makefile ]; then $(MAKE) -C doc subst-clean; fi
+	if [ -f doc/Makefile ]; then $(MAKE) -C doc clean; fi
+
+PYTHON_INSTALL_FLAGS := \
+	--force --root=$(CURDIR)/debian/tmp \
+	--no-compile -O0 --install-layout=deb
+
+override_dh_auto_install:
+	dh_auto_install -- PYTHON_INSTALL_FLAGS='$(PYTHON_INSTALL_FLAGS)'
+	rm -f debian/tmp/usr/lib/*/click/*.la
+	mkdir -p debian/tmp/usr/share/click/frameworks/
+	touch debian/tmp/usr/share/click/frameworks/.placeholder
+
+override_dh_install:
+	rm debian/tmp/usr/lib/*/libclick-0.4.la
+	dh_install
+	DH_AUTOSCRIPTDIR=debhelper debhelper/dh_click --name=click-desktop
+
+override_dh_missing:
+	dh_missing --fail-missing
+
+# Sphinx documentation is architecture-independent.
+override_dh_sphinxdoc-arch:
+
+override_dh_makeshlibs:
+	dh_makeshlibs -- -c4
+
+get-orig-source:
+	uscan --noconf --force-download --rename --download-current-version --destdir=..

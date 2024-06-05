@@ -1,0 +1,119 @@
+From 6c3752686a4f31f99fa31fd20b3e1c687f6f15da Mon Sep 17 00:00:00 2001
+From: wuruilong <wuruilong@loongson.cn>
+Date: Tue, 9 Apr 2024 14:49:45 +0800
+Subject: [PATCH] Add support for loongarch
+
+---
+ configure.ac           |  2 ++
+ preload/clickpreload.c | 33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index f173da9f..ea4d6013 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -57,6 +57,8 @@ AS_IF([test "${DBUS_TEST_RUNNER_CHECK}" != "yes"], [AC_MSG_ERROR([dbus-test-runn
+ AC_CHECK_PROG(GDBUS_CHECK,gdbus,yes)
+ AS_IF([test "${GDBUS_CHECK}" != "yes"], [AC_MSG_ERROR([gdbus (glib) not found])])
+ 
++AC_CHECK_FUNCS(__xmknod __xstat __xstat64)
++
+ # Structure characteristics needed for the Python/C integration in the test
+ # suite.
+ AC_COMPUTE_INT([STAT_OFFSET_UID], [offsetof(struct stat, st_uid)], [
+diff --git a/preload/clickpreload.c b/preload/clickpreload.c
+index ba6b9e7c..3934f187 100644
+--- a/preload/clickpreload.c
++++ b/preload/clickpreload.c
+@@ -40,6 +40,10 @@
+ #include <sys/types.h>
+ #include <unistd.h>
+ 
++#ifdef HAVE_CONFIG_H
++#include "../config.h"
++#endif
++
+ static int (*libc_chmod) (const char *, mode_t) = (void *) 0;
+ static int (*libc_chown) (const char *, uid_t, gid_t) = (void *) 0;
+ static int (*libc_execvp) (const char *, char * const []) = (void *) 0;
+@@ -60,9 +64,16 @@ static int (*libc_open) (const char *, int, ...) = (void *) 0;
+ static int (*libc_open64) (const char *, int, ...) = (void *) 0;
+ #endif
+ static int (*libc_symlink) (const char *, const char *) = (void *) 0;
++#ifdef HAVE___XMKNOD
+ static int (*libc___xmknod) (int, const char *, mode_t, dev_t *) = (void *) 0;
++#endif
++static int (*libc_mknod) (const char *, mode_t, dev_t) = (void *) 0;
++#ifdef HAVE___XSTAT
+ static int (*libc___xstat) (int, const char *, struct stat *) = (void *) 0;
++#endif
++#ifdef HAVE___XSTAT64
+ static int (*libc___xstat64) (int, const char *, struct stat64 *) = (void *) 0;
++#endif
+ static int (*libc_stat) (const char *, struct stat *) = (void *) 0;
+ #ifdef __GLIBC__
+ static int (*libc_stat64) (const char *, struct stat64 *) = (void *) 0;
+@@ -125,9 +136,16 @@ static void __attribute__ ((constructor)) clickpreload_init (void)
+     GET_NEXT_SYMBOL (open64);
+ #endif
+     GET_NEXT_SYMBOL (symlink);
++#ifdef HAVE___XMKNOD
+     GET_NEXT_SYMBOL (__xmknod);
++#endif
++    GET_NEXT_SYMBOL (mknod);
++#ifdef HAVE___XSTAT
+     GET_NEXT_SYMBOL (__xstat);
++#endif
++#ifdef HAVE___XSTAT64
+     GET_NEXT_SYMBOL (__xstat64);
++#endif
+     GET_NEXT_SYMBOL (stat);
+ #ifdef __GLIBC__
+     GET_NEXT_SYMBOL (stat64);
+@@ -430,6 +448,7 @@ int open64 (const char *pathname, int flags, ...)
+ }
+ #endif
+ 
++#ifdef HAVE___XMKNOD
+ int __xmknod (int ver, const char *pathname, mode_t mode, dev_t *dev)
+ {
+     if (!libc___xmknod)
+@@ -438,7 +457,18 @@ int __xmknod (int ver, const char *pathname, mode_t mode, dev_t *dev)
+     clickpreload_assert_path_in_instdir ("mknod", pathname);
+     return (*libc___xmknod) (ver, pathname, mode, dev);
+ }
++#endif
+ 
++int mknod (const char *pathname, mode_t mode, dev_t dev)
++{
++    if (!libc_mknod)
++        clickpreload_init ();  /* also needed for base_path, base_path_len */
++
++    clickpreload_assert_path_in_instdir ("mknod", pathname);
++    return (*libc_mknod) (pathname, mode, dev);
++}
++
++#ifdef HAVE___XSTAT
+ extern int __fxstat (int __ver, int __fildes, struct stat *__stat_buf);
+ 
+ int __xstat (int ver, const char *pathname, struct stat *buf)
+@@ -451,7 +481,9 @@ int __xstat (int ver, const char *pathname, struct stat *buf)
+ 
+     return (*libc___xstat) (ver, pathname, buf);
+ }
++#endif
+ 
++#ifdef HAVE___XSTAT64
+ extern int __fxstat64 (int ver, int __fildes, struct stat64 *__stat_buf);
+ 
+ int __xstat64 (int ver, const char *pathname, struct stat64 *buf)
+@@ -464,6 +496,7 @@ int __xstat64 (int ver, const char *pathname, struct stat64 *buf)
+ 
+     return (*libc___xstat64) (ver, pathname, buf);
+ }
++#endif
+ 
+ int stat(const char * pathname, struct stat * buf)
+ {
+-- 
+GitLab

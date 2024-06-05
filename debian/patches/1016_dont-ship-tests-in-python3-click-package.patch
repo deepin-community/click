@@ -1,0 +1,15 @@
+Description: Omit unit test files from Python module. Makes build reproducible.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Forwarded: https://gitlab.com/ubports/development/core/click/-/merge_requests/38
+
+--- a/setup.py.in
++++ b/setup.py.in
+@@ -45,7 +45,7 @@
+     author="Colin Watson",
+     author_email="cjwatson@ubuntu.com",
+     license="GNU GPL",
+-    packages=find_packages(),
++    packages=find_packages(exclude=['click_package.tests', 'click_package.tests.integration']),
+     scripts=['bin/click'],
+     install_requires=requirements,
+     cmdclass={"test": test_extra},

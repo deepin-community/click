@@ -1,0 +1,53 @@
+#! /usr/bin/env python3
+
+import sys
+
+from setuptools import find_packages, setup
+from setuptools.command.test import test
+
+
+requirements = []
+def require(package, pypi_name=None):
+    try:
+        __import__(package)
+    except ImportError:
+        requirements.append(package if pypi_name is None else pypi_name)
+
+
+require('debian', 'python-debian')
+if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 3):
+    require('mock')
+require('chardet')
+
+if "@GCOVR@":
+    require('coverage')
+
+
+class test_extra(test):
+    def run(self):
+        if "@GCOVR@":
+            coverage_executable = "python3-coverage"
+            self.spawn([
+                coverage_executable, "run", "-m", "unittest",
+                "discover", "-vv", "click_package.tests"])
+            self.spawn([coverage_executable, "combine"])
+            self.spawn([
+                coverage_executable, "xml", "-o", "coverage-python.xml"])
+            self.spawn([coverage_executable, "report"])
+        else:
+            test.run(self)
+
+
+setup(
+    name="click",
+    version="@PYTHON_PACKAGE_VERSION@",
+    description="Click package manager",
+    author="Colin Watson",
+    author_email="cjwatson@ubuntu.com",
+    license="GNU GPL",
+    packages=find_packages(),
+    scripts=['bin/click'],
+    install_requires=requirements,
+    cmdclass={"test": test_extra},
+    test_suite="click_package.tests",
+    )
