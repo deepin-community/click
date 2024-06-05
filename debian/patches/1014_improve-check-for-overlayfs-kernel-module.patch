@@ -1,0 +1,30 @@
+Description: Be happy, if 'overlay' kernel module is already loaded.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Abstract:
+ Don't bluntly fail if 'modprobe overlay' fails to execute. If the
+ overlay kernel module is already loaded, we should be happy and
+ proceed.
+ .
+ This is important for running integration tests in autopkgtest
+ lxc environments or chroots (where no kernel modules are present).
+
+--- a/click_package/tests/integration/helpers.py
++++ b/click_package/tests/integration/helpers.py
+@@ -41,10 +41,15 @@
+ 
+ 
+ def require_overlay():
++    lsmod = subprocess.Popen(["/sbin/lsmod"],stdout=subprocess.PIPE)
+     try:
+-        subprocess.check_call(["/sbin/modprobe", "overlay"])
++        subprocess.check_call(['grep', 'overlay'], stdin=lsmod.stdout)
++        lsmod.stdout.close()
+     except subprocess.CalledProcessError:
+-        raise unittest.SkipTest("Requires overlay fs support")
++        try:
++            subprocess.check_call(["/sbin/modprobe", "overlay"])
++        except subprocess.CalledProcessError:
++            raise unittest.SkipTest("Requires overlay fs support")
+ 
+ 
+ @contextlib.contextmanager

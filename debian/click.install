@@ -1,0 +1,6 @@
+etc/click
+usr/lib/systemd
+usr/bin/click
+usr/lib/*/click
+usr/lib/systemd
+usr/share/click/frameworks/

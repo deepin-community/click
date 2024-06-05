@@ -1,0 +1,15 @@
+Description: Stop using deprecated python3-six.
+Author: Alexandre Detiste <alexandre.detiste@gmail.com>
+Forwarded: https://gitlab.com/ubports/development/core/click/-/merge_requests/37
+
+--- a/click_package/tests/test_database.py.in
++++ b/click_package/tests/test_database.py.in
+@@ -34,7 +34,7 @@
+ import gi
+ gi.require_version('Click', '0.4')
+ from gi.repository import Click, GLib
+-from six import integer_types
++integer_types = (int,)
+ 
+ from click_package.json_helpers import json_array_to_python, json_object_to_python
+ from click_package.tests.gimock_types import Passwd

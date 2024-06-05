@@ -1,0 +1,17 @@
+Description: Use daemon:daemon permissions on create temp directories if tests are run as root.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Abstract:
+ When tests are run as root, the code will setuid/setgid to uid 1 / gid 1 and fail
+ to access self.temp_dir (which gets created with 0700 dir permissions).
+
+--- a/click_package/tests/helpers.py
++++ b/click_package/tests/helpers.py
+@@ -102,6 +102,8 @@
+         if self.temp_dir is not None:
+             return self.temp_dir
+         self.temp_dir = tempfile.mkdtemp(prefix="click")
++        if os.geteuid() == 0:
++            os.chown(self.temp_dir, 1, 1)
+         self.assertTrue(os.path.exists(self.temp_dir))
+         self.addCleanup(shutil.rmtree, self.temp_dir)
+         return self.temp_dir

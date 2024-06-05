@@ -1,0 +1,9 @@
+Document: click-doc
+Title: Click Package Format Specifications
+Author: UBports.com
+Abstract: This document describes the Click package format
+Section: Programming/C++
+
+Format: HTML
+Index: /usr/share/doc/click/html/index.html
+Files: /usr/share/doc/click/html/*

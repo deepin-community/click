@@ -1,0 +1,3796 @@
+Description: Propagate DEFAULT_ROOT into unit tests and man pages.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Forwarded: https://gitlab.com/ubports/development/core/click/-/merge_requests/4
+
+--- a/click_package/tests/Makefile.am
++++ b/click_package/tests/Makefile.am
+@@ -1,3 +1,7 @@
++SUBDIRS = integration
++
++NULL =
++
+ noinst_DATA = preload.gir
+ CLEANFILES = $(noinst_DATA)
+ 
+@@ -11,12 +15,19 @@
+ 		--libtool "$(LIBTOOL)" \
+ 		$< --output $@
+ 
+-noinst_SCRIPTS = test_paths.py
++noinst_SCRIPTS = test_database.py \
++                 test_paths.py \
++                 $(NULL)
+ CLEANFILES += $(noinst_SCRIPTS)
+ 
+ do_subst = sed \
+ 	-e 's,[@]sysconfdir[@],$(sysconfdir),g' \
+-	-e 's,[@]pkgdatadir[@],$(pkgdatadir),g'
++	-e 's,[@]pkgdatadir[@],$(pkgdatadir),g' \
++	-e 's,[@]DEFAULT_ROOT[@],$(DEFAULT_ROOT),g' \
++	$(NULL)
++
++test_database.py: test_database.py.in Makefile
++	$(do_subst) < $(srcdir)/test_database.py.in > $@
+ 
+ test_paths.py: test_paths.py.in Makefile
+ 	$(do_subst) < $(srcdir)/test_paths.py.in > $@
+--- a/click_package/tests/integration/test_hook.py
++++ /dev/null
+@@ -1,80 +0,0 @@
+-# Copyright (C) 2014 Canonical Ltd.
+-# Author: Michael Vogt <michael.vogt@ubuntu.com>
+-
+-# This program is free software: you can redistribute it and/or modify
+-# it under the terms of the GNU General Public License as published by
+-# the Free Software Foundation; version 3 of the License.
+-#
+-# This program is distributed in the hope that it will be useful,
+-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-# GNU General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-"""Integration tests for the click hook feature."""
+-
+-import os
+-import subprocess
+-from textwrap import dedent
+-
+-from .helpers import (
+-    ClickTestCase,
+-    require_root,
+-)
+-
+-
+-class TestHook(ClickTestCase):
+-
+-    @classmethod
+-    def setUpClass(cls):
+-        super(TestHook, cls).setUpClass()
+-        require_root()
+-
+-    def _make_hook(self, name):
+-        hook_fname = "/usr/share/click/hooks/%s.hook" % name
+-        canary_fname = os.path.join(self.temp_dir, "canary.sh")
+-        canary_log = os.path.join(self.temp_dir, "canary.log")
+-        with open(hook_fname, "w") as f:
+-            f.write(dedent("""\
+-            Pattern: ${home}/${id}.test-hook
+-            User-Level: yes
+-            Exec: %s
+-            Hook-Name: %s
+-            """ % (canary_fname, name)))
+-        with open(canary_fname, "w") as f:
+-            f.write(dedent("""\
+-            #!/bin/sh
+-            echo "i-hook-you-up" >> %s
+-            """ % canary_log))
+-        os.chmod(canary_fname, 0o755)
+-        return hook_fname, canary_log
+-
+-    def test_hook_install_user(self):
+-        # build/install the hook
+-        hook_name = "clicktesthook"
+-        hook_file, hook_log = self._make_hook(hook_name)
+-        self.addCleanup(os.unlink, hook_file)
+-        subprocess.check_call(
+-            [self.click_binary, "hook", "install", hook_name])
+-        self.addCleanup(
+-            subprocess.check_call, [self.click_binary, "hook", "remove",
+-                                    hook_name])
+-        # make click that uses the hook
+-        hooks = {'app1': {hook_name: 'README'}}
+-        click_pkg_name = "com.example.hook-1"
+-        click_pkg = self._make_click(
+-            click_pkg_name, framework="", hooks=hooks)
+-        user = os.environ.get("USER", "root")
+-        self.click_install(click_pkg, click_pkg_name, user)
+-        # ensure we have the hook
+-        generated_hook_file = os.path.expanduser(
+-            "~/com.example.hook-1_app1_1.0.test-hook")
+-        self.assertTrue(os.path.exists(generated_hook_file))
+-        self.assertEqual(
+-            os.path.realpath(generated_hook_file),
+-            "/opt/click.ubuntu.com/com.example.hook-1/1.0/README")
+-        with open(hook_log) as f:
+-            hook_log_content = f.read().strip()
+-        self.assertEqual("i-hook-you-up", hook_log_content)
+--- a/click_package/tests/integration/test_info.py
++++ /dev/null
+@@ -1,65 +0,0 @@
+-# Copyright (C) 2014 Canonical Ltd.
+-# Author: Michael Vogt <michael.vogt@ubuntu.com>
+-
+-# This program is free software: you can redistribute it and/or modify
+-# it under the terms of the GNU General Public License as published by
+-# the Free Software Foundation; version 3 of the License.
+-#
+-# This program is distributed in the hope that it will be useful,
+-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-# GNU General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-"""Integration tests for the click CLI info command."""
+-
+-import json
+-import os
+-import subprocess
+-
+-from .helpers import ClickTestCase
+-
+-
+-class TestInfo(ClickTestCase):
+-    def test_info_from_path(self):
+-        name = "com.example.foo"
+-        path_to_click = self._make_click(name)
+-        output = subprocess.check_output([
+-            self.click_binary, "info", path_to_click], universal_newlines=True)
+-        self.assertEqual(name, json.loads(output)["name"])
+-
+-    def test_info_installed_click(self):
+-        name = "com.example.foo"
+-        user = os.environ.get("USER", "root")
+-        path_to_click = self._make_click(name, framework="")
+-        self.click_install(path_to_click, name, user)
+-        output = subprocess.check_output([
+-            self.click_binary, "info", name], universal_newlines=True)
+-        self.assertEqual(json.loads(output)["name"], name)
+-
+-    def test_info_file_in_package(self):
+-        name = "org.example.info"
+-        version = "1.0"
+-        click_pkg = self._make_click(name=name, version=version, framework="")
+-        subprocess.check_call(
+-            [self.click_binary, "install", "--allow-unauthenticated",
+-             "--all-users", click_pkg])
+-        self.addCleanup(
+-            subprocess.check_call,
+-            [self.click_binary, "unregister", "--all-users", name])
+-        output = subprocess.check_output(
+-            [self.click_binary, "info",
+-             "/opt/click.ubuntu.com/%s/%s/README" % (name, version)],
+-            universal_newlines=True)
+-        self.assertEqual(name, json.loads(output)["name"])
+-
+-    def test_info_different_extension(self):
+-        name = "org.example.info"
+-        raw_path = self._make_click(name)
+-        path = "%s.extra" % raw_path
+-        os.rename(raw_path, path)
+-        output = subprocess.check_output([
+-            self.click_binary, "info", path], universal_newlines=True)
+-        self.assertEqual(name, json.loads(output)["name"])
+--- a/click_package/tests/integration/test_install.py
++++ /dev/null
+@@ -1,118 +0,0 @@
+-# Copyright (C) 2014 Canonical Ltd.
+-# Author: Michael Vogt <michael.vogt@ubuntu.com>
+-
+-# This program is free software: you can redistribute it and/or modify
+-# it under the terms of the GNU General Public License as published by
+-# the Free Software Foundation; version 3 of the License.
+-#
+-# This program is distributed in the hope that it will be useful,
+-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-# GNU General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-"""Integration tests for the click install feature."""
+-
+-import subprocess
+-
+-from .helpers import (
+-    require_root,
+-    ClickTestCase,
+-)
+-
+-
+-def add_user(name):
+-    subprocess.check_call(["useradd", name])
+-    return name
+-
+-
+-def del_user(name):
+-    subprocess.check_call(["userdel", "-r", name])
+-
+-
+-class TestClickInstall(ClickTestCase):
+-
+-    @classmethod
+-    def setUpClass(cls):
+-        super(TestClickInstall, cls).setUpClass()
+-        require_root()
+-        cls.USER_1 = add_user("click-test-user-1")
+-        cls.USER_2 = add_user("click-test-user-2")
+-
+-    @classmethod
+-    def tearDownClass(cls):
+-        super(TestClickInstall, cls).tearDownClass()
+-        del_user(cls.USER_1)
+-        del_user(cls.USER_2)
+-
+-    def test_install_for_single_user(self):
+-        name = "foo-1"
+-        click_pkg = self._make_click(name=name, framework="")
+-        # install it
+-        self.click_install(click_pkg, name, self.USER_1)
+-        # ensure that user-1 has it
+-        output = subprocess.check_output([
+-            "sudo", "-u", self.USER_1,
+-            self.click_binary, "list"], universal_newlines=True)
+-        self.assertEqual(output, "%s\t1.0\n" % name)
+-        # but not user-2
+-        output = subprocess.check_output([
+-            "sudo", "-u", self.USER_2,
+-            self.click_binary, "list"], universal_newlines=True)
+-        self.assertEqual(output, "")
+-        # and that we can see it with the --user option
+-        output = subprocess.check_output(
+-            [self.click_binary, "list", "--user=%s" % self.USER_1],
+-            universal_newlines=True)
+-        self.assertEqual(output, "%s\t1.0\n" % name)
+-
+-    def test_install_for_single_user_and_register(self):
+-        name = "foo-1"
+-        click_pkg = self._make_click(name=name, framework="")
+-        self.click_install(click_pkg, name, self.USER_1)
+-        # not available for user2
+-        output = subprocess.check_output([
+-            "sudo", "-u", self.USER_2,
+-            self.click_binary, "list"], universal_newlines=True)
+-        self.assertEqual(output, "")
+-        # register it
+-        subprocess.check_call(
+-            [self.click_binary, "register", "--user=%s" % self.USER_2,
+-             name, "1.0", ])
+-        self.addCleanup(self.click_unregister, name, self.USER_2)
+-        # and ensure its available for user2
+-        output = subprocess.check_output([
+-            "sudo", "-u", self.USER_2,
+-            self.click_binary, "list"], universal_newlines=True)
+-        self.assertEqual(output, "%s\t1.0\n" % name)
+-
+-    def test_install_for_all_users(self):
+-        name = "foo-2"
+-        click_pkg = self._make_click(name=name, framework="")
+-        self.click_install(click_pkg, name, "@all")
+-        # ensure all users see it
+-        for user in (self.USER_1, self.USER_2):
+-            output = subprocess.check_output(
+-                ["sudo", "-u", user, self.click_binary, "list"],
+-                universal_newlines=True)
+-            self.assertEqual(output, "%s\t1.0\n" % name)
+-
+-    def test_pkgdir_after_install(self):
+-        name = "foo-3"
+-        click_pkg = self._make_click(name=name, version="1.2", framework="")
+-        self.click_install(click_pkg, name, "@all")
+-        # from the path
+-        output = subprocess.check_output(
+-            [self.click_binary, "pkgdir",
+-             "/opt/click.ubuntu.com/%s/1.2/README" % name],
+-            universal_newlines=True).strip()
+-        self.assertEqual(output, "/opt/click.ubuntu.com/%s/1.2" % name)
+-        # now test from the click package name
+-        output = subprocess.check_output(
+-            [self.click_binary, "pkgdir", name],
+-            universal_newlines=True).strip()
+-        # note that this is different from above
+-        self.assertEqual(
+-            output, "/opt/click.ubuntu.com/.click/users/@all/%s" % name)
+--- /dev/null
++++ b/click_package/tests/test_database.py.in
+@@ -0,0 +1,917 @@
++# Copyright (C) 2013 Canonical Ltd.
++# Author: Colin Watson <cjwatson@ubuntu.com>
++
++# This program is free software: you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 3 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program.  If not, see <http://www.gnu.org/licenses/>.
++
++"""Unit tests for click_package.database."""
++
++from __future__ import print_function
++
++__metaclass__ = type
++__all__ = [
++    "TestClickDB",
++    "TestClickInstalledPackage",
++    "TestClickSingleDB",
++    ]
++
++
++from functools import partial
++from itertools import takewhile
++import json
++import os
++import unittest
++
++from gi.repository import Click, GLib
++from six import integer_types
++
++from click_package.json_helpers import json_array_to_python, json_object_to_python
++from click_package.tests.gimock_types import Passwd
++from click_package.tests.helpers import TestCase, mkfile, touch
++
++
++class TestClickInstalledPackage(TestCase):
++    def setUp(self):
++        super(TestClickInstalledPackage, self).setUp()
++        self.foo = Click.InstalledPackage.new(
++            "foo", "1.0", "/path/to/foo/1.0", False)
++        self.foo_clone = Click.InstalledPackage.new(
++            "foo", "1.0", "/path/to/foo/1.0", False)
++        self.foo_different_version = Click.InstalledPackage.new(
++            "foo", "2.0", "/path/to/foo/1.0", False)
++        self.foo_different_path = Click.InstalledPackage.new(
++            "foo", "1.0", "/path/to/foo/2.0", False)
++        self.foo_different_writeable = Click.InstalledPackage.new(
++            "foo", "1.0", "/path/to/foo/1.0", True)
++        self.bar = Click.InstalledPackage.new(
++            "bar", "1.0", "/path/to/foo/1.0", False)
++
++    def test_hash(self):
++        self.assertIsInstance(self.foo.hash(), integer_types)
++        self.assertEqual(self.foo.hash(), self.foo_clone.hash())
++        self.assertNotEqual(self.foo.hash(), self.foo_different_version.hash())
++        self.assertNotEqual(self.foo.hash(), self.foo_different_path.hash())
++        self.assertNotEqual(
++            self.foo.hash(), self.foo_different_writeable.hash())
++        self.assertNotEqual(self.foo.hash(), self.bar.hash())
++
++    # GLib doesn't allow passing an InstalledPackage as an argument here.
++    @unittest.expectedFailure
++    def test_equal_to(self):
++        self.assertTrue(self.foo.equal_to(self.foo_clone))
++        self.assertFalse(self.foo.equal_to(self.foo_different_version))
++        self.assertFalse(self.foo.equal_to(self.foo_different_path))
++        self.assertFalse(self.foo.equal_to(self.foo_different_writeable))
++        self.assertFalse(self.foo.equal_to(self.bar))
++
++
++class TestClickSingleDB(TestCase):
++    def setUp(self):
++        super(TestClickSingleDB, self).setUp()
++        self.use_temp_dir()
++        self.master_db = Click.DB()
++        self.master_db.add(self.temp_dir)
++        self.db = self.master_db.get(self.master_db.props.size - 1)
++        self.spawn_calls = []
++
++    def g_spawn_sync_side_effect(self, status_map, working_directory, argv,
++                                 envp, flags, child_setup, user_data,
++                                 standard_output, standard_error, exit_status,
++                                 error):
++        self.spawn_calls.append(list(takewhile(lambda x: x is not None, argv)))
++        if argv[0] in status_map:
++            exit_status[0] = status_map[argv[0]]
++        else:
++            self.delegate_to_original("g_spawn_sync")
++        return 0
++
++    def _installed_packages_tuplify(self, ip):
++        return [(p.props.package, p.props.version, p.props.path) for p in ip]
++
++    def test_path(self):
++        path = os.path.join(self.temp_dir, "a", "1.0")
++        os.makedirs(path)
++        self.assertEqual(path, self.db.get_path("a", "1.0"))
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST, self.db.get_path, "a", "1.1")
++
++    def test_has_package_version(self):
++        os.makedirs(os.path.join(self.temp_dir, "a", "1.0"))
++        self.assertTrue(self.db.has_package_version("a", "1.0"))
++        self.assertFalse(self.db.has_package_version("a", "1.1"))
++
++    def test_packages_current(self):
++        os.makedirs(os.path.join(self.temp_dir, "a", "1.0"))
++        os.makedirs(os.path.join(self.temp_dir, "a", "1.1"))
++        a_current = os.path.join(self.temp_dir, "a", "current")
++        os.symlink("1.1", a_current)
++        os.makedirs(os.path.join(self.temp_dir, "b", "0.1"))
++        b_current = os.path.join(self.temp_dir, "b", "current")
++        os.symlink("0.1", b_current)
++        os.makedirs(os.path.join(self.temp_dir, "c", "2.0"))
++        self.assertEqual([
++            ("a", "1.1", a_current),
++            ("b", "0.1", b_current),
++        ], self._installed_packages_tuplify(
++            self.db.get_packages(all_versions=False)))
++
++    def test_packages_all(self):
++        os.makedirs(os.path.join(self.temp_dir, "a", "1.0"))
++        os.makedirs(os.path.join(self.temp_dir, "a", "1.1"))
++        os.symlink("1.1", os.path.join(self.temp_dir, "a", "current"))
++        os.makedirs(os.path.join(self.temp_dir, "b", "0.1"))
++        os.symlink("0.1", os.path.join(self.temp_dir, "b", "current"))
++        os.makedirs(os.path.join(self.temp_dir, "c", "2.0"))
++        self.assertEqual([
++            ("a", "1.0", os.path.join(self.temp_dir, "a", "1.0")),
++            ("a", "1.1", os.path.join(self.temp_dir, "a", "1.1")),
++            ("b", "0.1", os.path.join(self.temp_dir, "b", "0.1")),
++            ("c", "2.0", os.path.join(self.temp_dir, "c", "2.0")),
++        ], self._installed_packages_tuplify(
++            self.db.get_packages(all_versions=True)))
++
++    def test_packages_all_ignores_non_directory(self):
++        os.makedirs(os.path.join(self.temp_dir, "a", "1.0"))
++        touch(os.path.join(self.temp_dir, "file"))
++        self.assertEqual([
++            ("a", "1.0", os.path.join(self.temp_dir, "a", "1.0")),
++        ], self._installed_packages_tuplify(
++            self.db.get_packages(all_versions=True)))
++
++    def test_manifest(self):
++        manifest_path = os.path.join(
++            self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
++        manifest_obj = {
++            "name": "a", "version": "1.0", "hooks": {"a-app": {}},
++            "_should_be_removed": "",
++        }
++        with mkfile(manifest_path) as manifest:
++            json.dump(manifest_obj, manifest)
++        del manifest_obj["_should_be_removed"]
++        manifest_obj["_directory"] = os.path.join(self.temp_dir, "a", "1.0")
++        self.assertEqual(
++            manifest_obj,
++            json_object_to_python(self.db.get_manifest("a", "1.0")))
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST,
++            self.db.get_manifest, "a", "1.1")
++        self.assertEqual(
++            manifest_obj,
++            json.loads(self.db.get_manifest_as_string("a", "1.0")))
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST,
++            self.db.get_manifest_as_string, "a", "1.1")
++
++    def test_manifest_bad(self):
++        manifest_path = os.path.join(
++            self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
++        with mkfile(manifest_path) as manifest:
++            print("{bad syntax", file=manifest)
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.BAD_MANIFEST, self.db.get_manifest, "a", "1.0")
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.BAD_MANIFEST,
++            self.db.get_manifest_as_string, "a", "1.0")
++        manifest_path = os.path.join(
++            self.temp_dir, "a", "1.1", ".click", "info", "a.manifest")
++        with mkfile(manifest_path) as manifest:
++            print("[0]", file=manifest)
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.BAD_MANIFEST, self.db.get_manifest, "a", "1.1")
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.BAD_MANIFEST,
++            self.db.get_manifest_as_string, "a", "1.1")
++
++    def test_app_running(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync",
++                ) as (enter, preloads):
++            enter()
++            preloads["click_find_on_path"].return_value = True
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
++            self.assertTrue(self.db.app_running("foo", "bar", "1.0"))
++            self.assertEqual(
++                [[b"lomiri-app-pid", b"foo_bar_1.0"]], self.spawn_calls)
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 1 << 8})
++            self.assertFalse(self.db.app_running("foo", "bar", "1.0"))
++
++    def test_any_app_running_ubuntu_app_pid(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync",
++                ) as (enter, preloads):
++            enter()
++            manifest_path = os.path.join(
++                self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
++            with mkfile(manifest_path) as manifest:
++                json.dump({"hooks": {"a-app": {}}}, manifest)
++            preloads["click_find_on_path"].side_effect = (
++                lambda command: command == b"lomiri-app-pid")
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
++            self.assertTrue(self.db.any_app_running("a", "1.0"))
++            self.assertEqual(
++                [[b"lomiri-app-pid", b"a_a-app_1.0"]], self.spawn_calls)
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 1 << 8})
++            self.assertFalse(self.db.any_app_running("a", "1.0"))
++
++    def test_any_app_running_no_app_pid_command(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync",
++                ) as (enter, preloads):
++            enter()
++            manifest_path = os.path.join(
++                self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
++            with mkfile(manifest_path) as manifest:
++                json.dump({"hooks": {"a-app": {}}}, manifest)
++            preloads["click_find_on_path"].return_value = False
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
++            self.assertFalse(self.db.any_app_running("a", "1.0"))
++
++    def test_any_app_running_missing_app(self):
++        with self.run_in_subprocess("click_find_on_path") as (enter, preloads):
++            enter()
++            preloads["click_find_on_path"].side_effect = (
++                lambda command: command == b"lomiri-app-pid")
++            self.assertRaisesDatabaseError(
++                Click.DatabaseError.DOES_NOT_EXIST,
++                self.db.any_app_running, "a", "1.0")
++
++    def test_any_app_running_bad_manifest(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync",
++                ) as (enter, preloads):
++            enter()
++            manifest_path = os.path.join(
++                self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
++            with mkfile(manifest_path) as manifest:
++                print("{bad syntax", file=manifest)
++            preloads["click_find_on_path"].side_effect = (
++                lambda command: command == b"lomiri-app-pid")
++            self.assertFalse(self.db.any_app_running("a", "1.0"))
++            self.assertFalse(preloads["g_spawn_sync"].called)
++
++    def test_any_app_running_no_hooks(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync",
++                ) as (enter, preloads):
++            enter()
++            manifest_path = os.path.join(
++                self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
++            with mkfile(manifest_path) as manifest:
++                json.dump({}, manifest)
++            preloads["click_find_on_path"].side_effect = (
++                lambda command: command == b"lomiri-app-pid")
++            self.assertFalse(self.db.any_app_running("a", "1.0"))
++            self.assertFalse(preloads["g_spawn_sync"].called)
++
++    def test_maybe_remove_registered(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync",
++                ) as (enter, preloads):
++            enter()
++            version_path = os.path.join(self.temp_dir, "a", "1.0")
++            manifest_path = os.path.join(
++                version_path, ".click", "info", "a.manifest")
++            with mkfile(manifest_path) as manifest:
++                json.dump({"hooks": {"a-app": {}}}, manifest)
++            user_path = os.path.join(
++                self.temp_dir, ".click", "users", "test-user", "a")
++            os.makedirs(os.path.dirname(user_path))
++            os.symlink(version_path, user_path)
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
++            preloads["click_find_on_path"].return_value = True
++            self.db.maybe_remove("a", "1.0")
++            self.assertTrue(os.path.exists(version_path))
++            self.assertTrue(os.path.exists(user_path))
++
++    def test_maybe_remove_running(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync",
++                ) as (enter, preloads):
++            enter()
++            version_path = os.path.join(self.temp_dir, "a", "1.0")
++            manifest_path = os.path.join(
++                version_path, ".click", "info", "a.manifest")
++            with mkfile(manifest_path) as manifest:
++                json.dump({"hooks": {"a-app": {}}}, manifest)
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
++            preloads["click_find_on_path"].return_value = True
++            self.db.maybe_remove("a", "1.0")
++            self.assertTrue(os.path.exists(version_path))
++
++    def test_maybe_remove_not_running(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync",
++                ) as (enter, preloads):
++            enter()
++            os.environ["TEST_QUIET"] = "1"
++            version_path = os.path.join(self.temp_dir, "a", "1.0")
++            manifest_path = os.path.join(
++                version_path, ".click", "info", "a.manifest")
++            with mkfile(manifest_path) as manifest:
++                json.dump({"hooks": {"a-app": {}}}, manifest)
++            current_path = os.path.join(self.temp_dir, "a", "current")
++            os.symlink("1.0", current_path)
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 1 << 8})
++            preloads["click_find_on_path"].return_value = True
++            self.db.maybe_remove("a", "1.0")
++            self.assertFalse(os.path.exists(os.path.join(self.temp_dir, "a")))
++
++    def test_gc(self):
++        with self.run_in_subprocess(
++                "click_find_on_path", "g_spawn_sync", "getpwnam"
++                ) as (enter, preloads):
++            enter()
++            preloads["getpwnam"].side_effect = (
++                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
++            os.environ["TEST_QUIET"] = "1"
++            a_path = os.path.join(self.temp_dir, "a", "1.0")
++            a_manifest_path = os.path.join(
++                a_path, ".click", "info", "a.manifest")
++            with mkfile(a_manifest_path) as manifest:
++                json.dump({"hooks": {"a-app": {}}}, manifest)
++            b_path = os.path.join(self.temp_dir, "b", "1.0")
++            b_manifest_path = os.path.join(
++                b_path, ".click", "info", "b.manifest")
++            with mkfile(b_manifest_path) as manifest:
++                json.dump({"hooks": {"b-app": {}}}, manifest)
++            c_path = os.path.join(self.temp_dir, "c", "1.0")
++            c_manifest_path = os.path.join(
++                c_path, ".click", "info", "c.manifest")
++            with mkfile(c_manifest_path) as manifest:
++                json.dump({"hooks": {"c-app": {}}}, manifest)
++            a_user_path = os.path.join(
++                self.temp_dir, ".click", "users", "test-user", "a")
++            os.makedirs(os.path.dirname(a_user_path))
++            os.symlink(a_path, a_user_path)
++            b_gcinuse_path = os.path.join(
++                self.temp_dir, ".click", "users", "@gcinuse", "b")
++            os.makedirs(os.path.dirname(b_gcinuse_path))
++            os.symlink(b_path, b_gcinuse_path)
++            preloads["g_spawn_sync"].side_effect = partial(
++                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 1 << 8})
++            preloads["click_find_on_path"].return_value = True
++            self.db.gc()
++            self.assertTrue(os.path.exists(a_path))
++            self.assertFalse(os.path.exists(b_gcinuse_path))
++            self.assertFalse(os.path.exists(b_path))
++            self.assertFalse(os.path.exists(c_path))
++
++    def test_gc_ignores_non_directory(self):
++        with self.run_in_subprocess(
++                "getpwnam"
++                ) as (enter, preloads):
++            enter()
++            preloads["getpwnam"].side_effect = (
++                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
++            a_path = os.path.join(self.temp_dir, "a", "1.0")
++            a_manifest_path = os.path.join(
++                a_path, ".click", "info", "a.manifest")
++            with mkfile(a_manifest_path) as manifest:
++                json.dump({"hooks": {"a-app": {}}}, manifest)
++            a_user_path = os.path.join(
++                self.temp_dir, ".click", "users", "test-user", "a")
++            os.makedirs(os.path.dirname(a_user_path))
++            os.symlink(a_path, a_user_path)
++            touch(os.path.join(self.temp_dir, "file"))
++            self.db.gc()
++            self.assertTrue(os.path.exists(a_path))
++
++    # Test that bug #1479001 is fixed. Uses the following scenario:
++    #
++    # - Two databases: db1 and db2.
++    # - One package, "test-package":
++    #    - Versions 1 and 3 installed in db1
++    #    - Version 2 installed in db2
++    #    - User has a registration in db2 for version 2, where the registration
++    #      timestamp precedes the installation of version 3.
++    #
++    # In this case, bug #1479001 expects that the user's registration would
++    # be updated to 3, since it was installed after the user registered for
++    # 2, which implies that the user would like the update to 3.
++    def test_gc_fixes_old_user_registrations(self):
++        with self.run_in_subprocess("getpwnam") as (enter, preloads):
++            enter()
++
++            # Setup the system hook
++            preloads["getpwnam"].side_effect = (
++                lambda name: self.make_pointer(Passwd(pw_dir=b"/foo")))
++
++            # Setup both databases
++            db1 = os.path.join(self.temp_dir, "db1")
++            db2 = os.path.join(self.temp_dir, "db2")
++            db = Click.DB()
++            db.add(db1)
++            db.add(db2)
++
++            # Prepare common manifest for the packages
++            manifest = {"hooks": {"test-app": {"test": "foo"}}}
++
++            # Setup versions 1.0 and 3.0 of package in db1
++            version1 = os.path.join(db1, "test-package", "1.0")
++            with mkfile(os.path.join(version1, ".click", "info",
++                        "test-package.manifest")) as f:
++                json.dump(manifest, f)
++
++            version3 = os.path.join(db1, "test-package", "3.0")
++            with mkfile(os.path.join(version3, ".click", "info",
++                        "test-package.manifest")) as f:
++                json.dump(manifest, f)
++
++            # Setup version 0.2 of package in db2
++            version2 = os.path.join(db2, "test-package", "2.0")
++            with mkfile(os.path.join(version2, ".click", "info",
++                        "test-package.manifest")) as f:
++                json.dump(manifest, f)
++
++            # Setup the user registration for 2.0 in db2.
++            registrationPath = os.path.join(
++                db2, ".click", "users", "foo", "test-package")
++            os.makedirs(os.path.dirname(registrationPath))
++            os.symlink(version2, registrationPath)
++
++            # Run the garbage collection to update the registrations.
++            db.gc()
++
++            # Verify that the user still has a registration for the package,
++            # and that it's now registered for version 3.0.
++            self.assertTrue(os.path.lexists(registrationPath))
++            self.assertEqual(version3, os.readlink(registrationPath))
++
++            user_db = Click.User.for_user(db, "foo")
++            try:
++                version = user_db.get_version("test-package")
++                self.assertEqual("3.0", version)
++            except:
++                self.fail("No user registration for 'test-package'")
++
++    def _make_ownership_test(self):
++        path = os.path.join(self.temp_dir, "a", "1.0")
++        touch(os.path.join(path, ".click", "info", "a.manifest"))
++        os.symlink("1.0", os.path.join(self.temp_dir, "a", "current"))
++        user_path = os.path.join(
++            self.temp_dir, ".click", "users", "test-user", "a")
++        os.makedirs(os.path.dirname(user_path))
++        os.symlink(path, user_path)
++        touch(os.path.join(self.temp_dir, ".click", "log"))
++
++    def _set_stat_side_effect(self, preloads, side_effect, limit):
++        limit = limit.encode()
++        for func_name in self.STAT_FUNCTIONS:
++            if func_name.startswith("__x"): # __xstat{,64}
++                preloads[func_name].side_effect = (
++                    partial(side_effect, func_name, limit))
++            else: # stat{,64}, __stat64_time64
++                preloads[func_name].side_effect = (
++                    partial(side_effect, func_name, limit, 3))
++
++    def test_ensure_ownership_quick_if_correct(self):
++        def stat_side_effect(name, limit, ver, path, buf):
++            st = self.convert_stat_pointer(name, buf)
++            if path == limit:
++                st.st_uid = 1
++                st.st_gid = 1
++                return 0
++            else:
++                self.delegate_to_original(name)
++                return -1
++
++        with self.run_in_subprocess(
++                "chown", "getpwnam", *self.STAT_FUNCTIONS
++                ) as (enter, preloads):
++            enter()
++            preloads["getpwnam"].side_effect = (
++                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
++            self._set_stat_side_effect(
++                preloads, stat_side_effect, self.db.props.root)
++
++            self._make_ownership_test()
++            self.db.ensure_ownership()
++            self.assertFalse(preloads["chown"].called)
++
++    def test_ensure_ownership(self):
++        def stat_side_effect(name, limit, ver, path, buf):
++            st = self.convert_stat_pointer(name, buf)
++            if path == limit:
++                st.st_uid = 2
++                st.st_gid = 2
++                return 0
++            else:
++                self.delegate_to_original(name)
++                return -1
++
++        with self.run_in_subprocess(
++                "chown", "getpwnam", *self.STAT_FUNCTIONS
++                ) as (enter, preloads):
++            enter()
++            preloads["getpwnam"].side_effect = (
++                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
++            self._set_stat_side_effect(
++                preloads, stat_side_effect, self.db.props.root)
++
++            self._make_ownership_test()
++            self.db.ensure_ownership()
++            expected_paths = [
++                self.temp_dir,
++                os.path.join(self.temp_dir, ".click"),
++                os.path.join(self.temp_dir, ".click", "log"),
++                os.path.join(self.temp_dir, ".click", "users"),
++                os.path.join(self.temp_dir, "a"),
++                os.path.join(self.temp_dir, "a", "1.0"),
++                os.path.join(self.temp_dir, "a", "1.0", ".click"),
++                os.path.join(self.temp_dir, "a", "1.0", ".click", "info"),
++                os.path.join(
++                    self.temp_dir, "a", "1.0", ".click", "info", "a.manifest"),
++                os.path.join(self.temp_dir, "a", "current"),
++                ]
++            self.assertCountEqual(
++                [path.encode() for path in expected_paths],
++                [args[0][0] for args in preloads["chown"].call_args_list])
++            self.assertCountEqual(
++                [(1, 1)],
++                set(args[0][1:] for args in preloads["chown"].call_args_list))
++
++    def test_ensure_ownership_missing_clickpkg_user(self):
++        with self.run_in_subprocess("getpwnam") as (enter, preloads):
++            enter()
++            preloads["getpwnam"].return_value = None
++            self.assertRaisesDatabaseError(
++                Click.DatabaseError.ENSURE_OWNERSHIP, self.db.ensure_ownership)
++
++    def test_ensure_ownership_failed_chown(self):
++        def stat_side_effect(name, limit, ver, path, buf):
++            st = self.convert_stat_pointer(name, buf)
++            if path == limit:
++                st.st_uid = 2
++                st.st_gid = 2
++                return 0
++            else:
++                self.delegate_to_original(name)
++                return -1
++
++        with self.run_in_subprocess(
++                "chown", "getpwnam", *self.STAT_FUNCTIONS
++                ) as (enter, preloads):
++            enter()
++            preloads["chown"].return_value = -1
++            preloads["getpwnam"].side_effect = (
++                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
++            self._set_stat_side_effect(
++                preloads, stat_side_effect, self.db.props.root)
++
++            self._make_ownership_test()
++            self.assertRaisesDatabaseError(
++                Click.DatabaseError.ENSURE_OWNERSHIP, self.db.ensure_ownership)
++
++
++class TestClickDB(TestCase):
++    def setUp(self):
++        super(TestClickDB, self).setUp()
++        self.use_temp_dir()
++
++    def _installed_packages_tuplify(self, ip):
++        return [
++            (p.props.package, p.props.version, p.props.path, p.props.writeable)
++            for p in ip]
++
++    def test_read_configuration(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = /a", file=a)
++        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
++            print("[Click Database]", file=b)
++            print("root = /b", file=b)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        db.add("/c")
++        self.assertEqual(3, db.props.size)
++        self.assertEqual(
++            ["/a", "/b", "/c"],
++            [db.get(i).props.root for i in range(db.props.size)])
++
++    def test_no_read(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = /a", file=a)
++        db = Click.DB()
++        self.assertEqual(0, db.props.size)
++
++    def test_no_db_conf_errors(self):
++        db = Click.DB()
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.INVALID, db.get, 0)
++        self.assertEqual(db.props.overlay, "")
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.INVALID, db.maybe_remove, "something", "1.0")
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.INVALID, db.gc)
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.INVALID, db.ensure_ownership)
++
++    def test_read_nonexistent(self):
++        db = Click.DB()
++        db.read(db_dir=os.path.join(self.temp_dir, "nonexistent"))
++        self.assertEqual(0, db.props.size)
++
++    def test_read_not_directory(self):
++        path = os.path.join(self.temp_dir, "file")
++        touch(path)
++        db = Click.DB()
++        self.assertRaisesFileError(GLib.FileError.NOTDIR, db.read, db_dir=path)
++
++    def test_add(self):
++        db = Click.DB()
++        self.assertEqual(0, db.props.size)
++        db.add("/new/root")
++        self.assertEqual(1, db.props.size)
++        self.assertEqual("/new/root", db.get(0).props.root)
++
++    def test_overlay(self):
++        with open(os.path.join(self.temp_dir, "00_custom.conf"), "w") as f:
++            print("[Click Database]", file=f)
++            print("root = /custom", file=f)
++        with open(os.path.join(self.temp_dir, "99_default.conf"), "w") as f:
++            print("[Click Database]", file=f)
++            print("root = @DEFAULT_ROOT@", file=f)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        self.assertEqual("@DEFAULT_ROOT@", db.props.overlay)
++
++    def test_path(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
++        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
++            print("[Click Database]", file=b)
++            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST, db.get_path, "pkg", "1.0")
++        os.makedirs(os.path.join(self.temp_dir, "a", "pkg", "1.0"))
++        self.assertEqual(
++            os.path.join(self.temp_dir, "a", "pkg", "1.0"),
++            db.get_path("pkg", "1.0"))
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST, db.get_path, "pkg", "1.1")
++        os.makedirs(os.path.join(self.temp_dir, "b", "pkg", "1.0"))
++        # The deepest copy of the same package/version is still preferred.
++        self.assertEqual(
++            os.path.join(self.temp_dir, "a", "pkg", "1.0"),
++            db.get_path("pkg", "1.0"))
++        os.makedirs(os.path.join(self.temp_dir, "b", "pkg", "1.1"))
++        self.assertEqual(
++            os.path.join(self.temp_dir, "b", "pkg", "1.1"),
++            db.get_path("pkg", "1.1"))
++
++    def test_has_package_version(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
++        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
++            print("[Click Database]", file=b)
++            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        self.assertFalse(db.has_package_version("pkg", "1.0"))
++        os.makedirs(os.path.join(self.temp_dir, "a", "pkg", "1.0"))
++        self.assertTrue(db.has_package_version("pkg", "1.0"))
++        self.assertFalse(db.has_package_version("pkg", "1.1"))
++        os.makedirs(os.path.join(self.temp_dir, "b", "pkg", "1.0"))
++        self.assertTrue(db.has_package_version("pkg", "1.0"))
++        os.makedirs(os.path.join(self.temp_dir, "b", "pkg", "1.1"))
++        self.assertTrue(db.has_package_version("pkg", "1.1"))
++
++    def test_packages_current(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
++        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
++            print("[Click Database]", file=b)
++            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        self.assertEqual([], list(db.get_packages(all_versions=False)))
++        os.makedirs(os.path.join(self.temp_dir, "a", "pkg1", "1.0"))
++        os.symlink("1.0", os.path.join(self.temp_dir, "a", "pkg1", "current"))
++        os.makedirs(os.path.join(self.temp_dir, "b", "pkg1", "1.1"))
++        pkg1_current = os.path.join(self.temp_dir, "b", "pkg1", "current")
++        os.symlink("1.1", pkg1_current)
++        os.makedirs(os.path.join(self.temp_dir, "b", "pkg2", "0.1"))
++        pkg2_current = os.path.join(self.temp_dir, "b", "pkg2", "current")
++        os.symlink("0.1", pkg2_current)
++        self.assertEqual([
++            ("pkg1", "1.1", pkg1_current, True),
++            ("pkg2", "0.1", pkg2_current, True),
++        ], self._installed_packages_tuplify(
++            db.get_packages(all_versions=False)))
++
++    def test_packages_all(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
++        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
++            print("[Click Database]", file=b)
++            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        self.assertEqual([], list(db.get_packages(all_versions=True)))
++        os.makedirs(os.path.join(self.temp_dir, "a", "pkg1", "1.0"))
++        os.symlink("1.0", os.path.join(self.temp_dir, "a", "pkg1", "current"))
++        os.makedirs(os.path.join(self.temp_dir, "b", "pkg1", "1.1"))
++        os.symlink("1.1", os.path.join(self.temp_dir, "b", "pkg1", "current"))
++        os.makedirs(os.path.join(self.temp_dir, "b", "pkg2", "0.1"))
++        os.symlink("0.1", os.path.join(self.temp_dir, "b", "pkg2", "current"))
++        self.assertEqual([
++            ("pkg1", "1.1", os.path.join(self.temp_dir, "b", "pkg1", "1.1"),
++             True),
++            ("pkg2", "0.1", os.path.join(self.temp_dir, "b", "pkg2", "0.1"),
++             True),
++            ("pkg1", "1.0", os.path.join(self.temp_dir, "a", "pkg1", "1.0"),
++             False),
++        ], self._installed_packages_tuplify(
++            db.get_packages(all_versions=True)))
++
++    def test_manifest(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
++        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
++            print("[Click Database]", file=b)
++            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST, db.get_manifest, "pkg", "1.0")
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST,
++            db.get_manifest_as_string, "pkg", "1.0")
++        a_manifest_path = os.path.join(
++            self.temp_dir, "a", "pkg", "1.0", ".click", "info", "pkg.manifest")
++        a_manifest_obj = {"name": "pkg", "version": "1.0"}
++        with mkfile(a_manifest_path) as a_manifest:
++            json.dump(a_manifest_obj, a_manifest)
++        a_manifest_obj["_directory"] = os.path.join(
++            self.temp_dir, "a", "pkg", "1.0")
++        self.assertEqual(
++            a_manifest_obj,
++            json_object_to_python(db.get_manifest("pkg", "1.0")))
++        self.assertEqual(
++            a_manifest_obj,
++            json.loads(db.get_manifest_as_string("pkg", "1.0")))
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST, db.get_manifest, "pkg", "1.1")
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.DOES_NOT_EXIST,
++            db.get_manifest_as_string, "pkg", "1.1")
++        b_manifest_path = os.path.join(
++            self.temp_dir, "b", "pkg", "1.1", ".click", "info", "pkg.manifest")
++        b_manifest_obj = {"name": "pkg", "version": "1.1"}
++        with mkfile(b_manifest_path) as b_manifest:
++            json.dump(b_manifest_obj, b_manifest)
++        b_manifest_obj["_directory"] = os.path.join(
++            self.temp_dir, "b", "pkg", "1.1")
++        self.assertEqual(
++            b_manifest_obj,
++            json_object_to_python(db.get_manifest("pkg", "1.1")))
++        self.assertEqual(
++            b_manifest_obj,
++            json.loads(db.get_manifest_as_string("pkg", "1.1")))
++
++    def test_manifest_bad(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        manifest_path = os.path.join(
++            self.temp_dir, "a", "pkg", "1.0", ".click", "info", "pkg.manifest")
++        with mkfile(manifest_path) as manifest:
++            print("{bad syntax", file=manifest)
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.BAD_MANIFEST, db.get_manifest, "pkg", "1.0")
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.BAD_MANIFEST,
++            db.get_manifest_as_string, "pkg", "1.0")
++        manifest_path = os.path.join(
++            self.temp_dir, "a", "pkg", "1.1", ".click", "info", "pkg.manifest")
++        with mkfile(manifest_path) as manifest:
++            print("[0]", file=manifest)
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.BAD_MANIFEST, db.get_manifest, "pkg", "1.0")
++        self.assertRaisesDatabaseError(
++            Click.DatabaseError.BAD_MANIFEST,
++            db.get_manifest_as_string, "pkg", "1.0")
++
++    def test_manifests_current(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
++        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
++            print("[Click Database]", file=b)
++            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        self.assertEqual(
++            [], json_array_to_python(db.get_manifests(all_versions=False)))
++        self.assertEqual(
++            [], json.loads(db.get_manifests_as_string(all_versions=False)))
++        a_pkg1_manifest_path = os.path.join(
++            self.temp_dir, "a", "pkg1", "1.0",
++            ".click", "info", "pkg1.manifest")
++        a_pkg1_manifest_obj = {"name": "pkg1", "version": "1.0"}
++        with mkfile(a_pkg1_manifest_path) as a_pkg1_manifest:
++            json.dump(a_pkg1_manifest_obj, a_pkg1_manifest)
++        os.symlink("1.0", os.path.join(self.temp_dir, "a", "pkg1", "current"))
++        b_pkg1_manifest_path = os.path.join(
++            self.temp_dir, "b", "pkg1", "1.1",
++            ".click", "info", "pkg1.manifest")
++        b_pkg1_manifest_obj = {"name": "pkg1", "version": "1.1"}
++        with mkfile(b_pkg1_manifest_path) as b_pkg1_manifest:
++            json.dump(b_pkg1_manifest_obj, b_pkg1_manifest)
++        os.symlink("1.1", os.path.join(self.temp_dir, "b", "pkg1", "current"))
++        b_pkg2_manifest_path = os.path.join(
++            self.temp_dir, "b", "pkg2", "0.1",
++            ".click", "info", "pkg2.manifest")
++        b_pkg2_manifest_obj = {"name": "pkg2", "version": "0.1"}
++        with mkfile(b_pkg2_manifest_path) as b_pkg2_manifest:
++            json.dump(b_pkg2_manifest_obj, b_pkg2_manifest)
++        os.symlink("0.1", os.path.join(self.temp_dir, "b", "pkg2", "current"))
++        b_pkg1_manifest_obj["_directory"] = os.path.join(
++            self.temp_dir, "b", "pkg1", "1.1")
++        b_pkg1_manifest_obj["_removable"] = 1
++        b_pkg2_manifest_obj["_directory"] = os.path.join(
++            self.temp_dir, "b", "pkg2", "0.1")
++        b_pkg2_manifest_obj["_removable"] = 1
++        self.assertEqual(
++            [b_pkg1_manifest_obj, b_pkg2_manifest_obj],
++            json_array_to_python(db.get_manifests(all_versions=False)))
++        self.assertEqual(
++            [b_pkg1_manifest_obj, b_pkg2_manifest_obj],
++            json.loads(db.get_manifests_as_string(all_versions=False)))
++
++    def test_manifests_all(self):
++        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
++            print("[Click Database]", file=a)
++            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
++        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
++            print("[Click Database]", file=b)
++            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
++        db = Click.DB()
++        db.read(db_dir=self.temp_dir)
++        self.assertEqual(
++            [], json_array_to_python(db.get_manifests(all_versions=True)))
++        self.assertEqual(
++            [], json.loads(db.get_manifests_as_string(all_versions=True)))
++        a_pkg1_manifest_path = os.path.join(
++            self.temp_dir, "a", "pkg1", "1.0",
++            ".click", "info", "pkg1.manifest")
++        a_pkg1_manifest_obj = {"name": "pkg1", "version": "1.0"}
++        with mkfile(a_pkg1_manifest_path) as a_pkg1_manifest:
++            json.dump(a_pkg1_manifest_obj, a_pkg1_manifest)
++        os.symlink("1.0", os.path.join(self.temp_dir, "a", "pkg1", "current"))
++        b_pkg1_manifest_path = os.path.join(
++            self.temp_dir, "b", "pkg1", "1.1",
++            ".click", "info", "pkg1.manifest")
++        b_pkg1_manifest_obj = {"name": "pkg1", "version": "1.1"}
++        with mkfile(b_pkg1_manifest_path) as b_pkg1_manifest:
++            json.dump(b_pkg1_manifest_obj, b_pkg1_manifest)
++        os.symlink("1.1", os.path.join(self.temp_dir, "b", "pkg1", "current"))
++        b_pkg2_manifest_path = os.path.join(
++            self.temp_dir, "b", "pkg2", "0.1",
++            ".click", "info", "pkg2.manifest")
++        b_pkg2_manifest_obj = {"name": "pkg2", "version": "0.1"}
++        with mkfile(b_pkg2_manifest_path) as b_pkg2_manifest:
++            json.dump(b_pkg2_manifest_obj, b_pkg2_manifest)
++        os.symlink("0.1", os.path.join(self.temp_dir, "b", "pkg2", "current"))
++        a_pkg1_manifest_obj["_directory"] = os.path.join(
++            self.temp_dir, "a", "pkg1", "1.0")
++        a_pkg1_manifest_obj["_removable"] = 0
++        b_pkg1_manifest_obj["_directory"] = os.path.join(
++            self.temp_dir, "b", "pkg1", "1.1")
++        b_pkg1_manifest_obj["_removable"] = 1
++        b_pkg2_manifest_obj["_directory"] = os.path.join(
++            self.temp_dir, "b", "pkg2", "0.1")
++        b_pkg2_manifest_obj["_removable"] = 1
++        self.assertEqual(
++            [b_pkg1_manifest_obj, b_pkg2_manifest_obj, a_pkg1_manifest_obj],
++            json_array_to_python(db.get_manifests(all_versions=True)))
++        self.assertEqual(
++            [b_pkg1_manifest_obj, b_pkg2_manifest_obj, a_pkg1_manifest_obj],
++            json.loads(db.get_manifests_as_string(all_versions=True)))
+--- /dev/null
++++ b/click_package/tests/integration/test_hook.py.in
+@@ -0,0 +1,80 @@
++# Copyright (C) 2014 Canonical Ltd.
++# Author: Michael Vogt <michael.vogt@ubuntu.com>
++
++# This program is free software: you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 3 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program.  If not, see <http://www.gnu.org/licenses/>.
++
++"""Integration tests for the click hook feature."""
++
++import os
++import subprocess
++from textwrap import dedent
++
++from .helpers import (
++    ClickTestCase,
++    require_root,
++)
++
++
++class TestHook(ClickTestCase):
++
++    @classmethod
++    def setUpClass(cls):
++        super(TestHook, cls).setUpClass()
++        require_root()
++
++    def _make_hook(self, name):
++        hook_fname = "/usr/share/click/hooks/%s.hook" % name
++        canary_fname = os.path.join(self.temp_dir, "canary.sh")
++        canary_log = os.path.join(self.temp_dir, "canary.log")
++        with open(hook_fname, "w") as f:
++            f.write(dedent("""\
++            Pattern: ${home}/${id}.test-hook
++            User-Level: yes
++            Exec: %s
++            Hook-Name: %s
++            """ % (canary_fname, name)))
++        with open(canary_fname, "w") as f:
++            f.write(dedent("""\
++            #!/bin/sh
++            echo "i-hook-you-up" >> %s
++            """ % canary_log))
++        os.chmod(canary_fname, 0o755)
++        return hook_fname, canary_log
++
++    def test_hook_install_user(self):
++        # build/install the hook
++        hook_name = "clicktesthook"
++        hook_file, hook_log = self._make_hook(hook_name)
++        self.addCleanup(os.unlink, hook_file)
++        subprocess.check_call(
++            [self.click_binary, "hook", "install", hook_name])
++        self.addCleanup(
++            subprocess.check_call, [self.click_binary, "hook", "remove",
++                                    hook_name])
++        # make click that uses the hook
++        hooks = {'app1': {hook_name: 'README'}}
++        click_pkg_name = "com.example.hook-1"
++        click_pkg = self._make_click(
++            click_pkg_name, framework="", hooks=hooks)
++        user = os.environ.get("USER", "root")
++        self.click_install(click_pkg, click_pkg_name, user)
++        # ensure we have the hook
++        generated_hook_file = os.path.expanduser(
++            "~/com.example.hook-1_app1_1.0.test-hook")
++        self.assertTrue(os.path.exists(generated_hook_file))
++        self.assertEqual(
++            os.path.realpath(generated_hook_file),
++            "@DEFAULT_ROOT@/com.example.hook-1/1.0/README")
++        with open(hook_log) as f:
++            hook_log_content = f.read().strip()
++        self.assertEqual("i-hook-you-up", hook_log_content)
+--- /dev/null
++++ b/click_package/tests/integration/test_info.py.in
+@@ -0,0 +1,65 @@
++# Copyright (C) 2014 Canonical Ltd.
++# Author: Michael Vogt <michael.vogt@ubuntu.com>
++
++# This program is free software: you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 3 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program.  If not, see <http://www.gnu.org/licenses/>.
++
++"""Integration tests for the click CLI info command."""
++
++import json
++import os
++import subprocess
++
++from .helpers import ClickTestCase
++
++
++class TestInfo(ClickTestCase):
++    def test_info_from_path(self):
++        name = "com.example.foo"
++        path_to_click = self._make_click(name)
++        output = subprocess.check_output([
++            self.click_binary, "info", path_to_click], universal_newlines=True)
++        self.assertEqual(name, json.loads(output)["name"])
++
++    def test_info_installed_click(self):
++        name = "com.example.foo"
++        user = os.environ.get("USER", "root")
++        path_to_click = self._make_click(name, framework="")
++        self.click_install(path_to_click, name, user)
++        output = subprocess.check_output([
++            self.click_binary, "info", name], universal_newlines=True)
++        self.assertEqual(json.loads(output)["name"], name)
++
++    def test_info_file_in_package(self):
++        name = "org.example.info"
++        version = "1.0"
++        click_pkg = self._make_click(name=name, version=version, framework="")
++        subprocess.check_call(
++            [self.click_binary, "install", "--allow-unauthenticated",
++             "--all-users", click_pkg])
++        self.addCleanup(
++            subprocess.check_call,
++            [self.click_binary, "unregister", "--all-users", name])
++        output = subprocess.check_output(
++            [self.click_binary, "info",
++             "@DEFAULT_ROOT@/%s/%s/README" % (name, version)],
++            universal_newlines=True)
++        self.assertEqual(name, json.loads(output)["name"])
++
++    def test_info_different_extension(self):
++        name = "org.example.info"
++        raw_path = self._make_click(name)
++        path = "%s.extra" % raw_path
++        os.rename(raw_path, path)
++        output = subprocess.check_output([
++            self.click_binary, "info", path], universal_newlines=True)
++        self.assertEqual(name, json.loads(output)["name"])
+--- /dev/null
++++ b/click_package/tests/integration/test_install.py.in
+@@ -0,0 +1,118 @@
++# Copyright (C) 2014 Canonical Ltd.
++# Author: Michael Vogt <michael.vogt@ubuntu.com>
++
++# This program is free software: you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 3 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program.  If not, see <http://www.gnu.org/licenses/>.
++
++"""Integration tests for the click install feature."""
++
++import subprocess
++
++from .helpers import (
++    require_root,
++    ClickTestCase,
++)
++
++
++def add_user(name):
++    subprocess.check_call(["useradd", name])
++    return name
++
++
++def del_user(name):
++    subprocess.check_call(["userdel", "-r", name])
++
++
++class TestClickInstall(ClickTestCase):
++
++    @classmethod
++    def setUpClass(cls):
++        super(TestClickInstall, cls).setUpClass()
++        require_root()
++        cls.USER_1 = add_user("click-test-user-1")
++        cls.USER_2 = add_user("click-test-user-2")
++
++    @classmethod
++    def tearDownClass(cls):
++        super(TestClickInstall, cls).tearDownClass()
++        del_user(cls.USER_1)
++        del_user(cls.USER_2)
++
++    def test_install_for_single_user(self):
++        name = "foo-1"
++        click_pkg = self._make_click(name=name, framework="")
++        # install it
++        self.click_install(click_pkg, name, self.USER_1)
++        # ensure that user-1 has it
++        output = subprocess.check_output([
++            "sudo", "-u", self.USER_1,
++            self.click_binary, "list"], universal_newlines=True)
++        self.assertEqual(output, "%s\t1.0\n" % name)
++        # but not user-2
++        output = subprocess.check_output([
++            "sudo", "-u", self.USER_2,
++            self.click_binary, "list"], universal_newlines=True)
++        self.assertEqual(output, "")
++        # and that we can see it with the --user option
++        output = subprocess.check_output(
++            [self.click_binary, "list", "--user=%s" % self.USER_1],
++            universal_newlines=True)
++        self.assertEqual(output, "%s\t1.0\n" % name)
++
++    def test_install_for_single_user_and_register(self):
++        name = "foo-1"
++        click_pkg = self._make_click(name=name, framework="")
++        self.click_install(click_pkg, name, self.USER_1)
++        # not available for user2
++        output = subprocess.check_output([
++            "sudo", "-u", self.USER_2,
++            self.click_binary, "list"], universal_newlines=True)
++        self.assertEqual(output, "")
++        # register it
++        subprocess.check_call(
++            [self.click_binary, "register", "--user=%s" % self.USER_2,
++             name, "1.0", ])
++        self.addCleanup(self.click_unregister, name, self.USER_2)
++        # and ensure its available for user2
++        output = subprocess.check_output([
++            "sudo", "-u", self.USER_2,
++            self.click_binary, "list"], universal_newlines=True)
++        self.assertEqual(output, "%s\t1.0\n" % name)
++
++    def test_install_for_all_users(self):
++        name = "foo-2"
++        click_pkg = self._make_click(name=name, framework="")
++        self.click_install(click_pkg, name, "@all")
++        # ensure all users see it
++        for user in (self.USER_1, self.USER_2):
++            output = subprocess.check_output(
++                ["sudo", "-u", user, self.click_binary, "list"],
++                universal_newlines=True)
++            self.assertEqual(output, "%s\t1.0\n" % name)
++
++    def test_pkgdir_after_install(self):
++        name = "foo-3"
++        click_pkg = self._make_click(name=name, version="1.2", framework="")
++        self.click_install(click_pkg, name, "@all")
++        # from the path
++        output = subprocess.check_output(
++            [self.click_binary, "pkgdir",
++             "@DEFAULT_ROOT@/%s/1.2/README" % name],
++            universal_newlines=True).strip()
++        self.assertEqual(output, "@DEFAULT_ROOT@/%s/1.2" % name)
++        # now test from the click package name
++        output = subprocess.check_output(
++            [self.click_binary, "pkgdir", name],
++            universal_newlines=True).strip()
++        # note that this is different from above
++        self.assertEqual(
++            output, "@DEFAULT_ROOT@/.click/users/@all/%s" % name)
+--- a/doc/databases.rst
++++ /dev/null
+@@ -1,65 +0,0 @@
+-=========
+-Databases
+-=========
+-
+-(This is a lightly-edited copy of a brain-dump sent by Colin Watson to the
+-ubuntu-phone mailing list, preserved here since it may be useful.)
+-
+-Click has multiple databases where packages may be unpacked: by default we
+-have the "core" database for core apps (``/usr/share/click/preinstalled/``),
+-the "custom" database for carrier/OEM customisations (``/custom/click/``),
+-and the "default" database for user-installed applications
+-(``/opt/click.ubuntu.com/``), although these are configurable in
+-``/etc/click/databases/``.  Each database may have multiple unpacked
+-versions of any given package.
+-
+-Each database may also have user registrations, which live in
+-``.click/users/`` relative to the database root.  Each user has a
+-subdirectory of that, which contains symlinks to the versions of each
+-package they have registered.  This means that on a tablet, say, I can
+-install an app without it also showing up on my children's accounts; they'd
+-need to install it separately, although the disk space for the unpacked copy
+-of the app would be shared.
+-
+-There was an idea early on that we'd deal with preinstalled apps by going
+-round and registering them all for all active users on first boot.  This
+-would have lots of problems for the packaging system, though.  Most notably,
+-doing it that way makes it hard for a user to remove an app and make it
+-stick, because it would tend to reappear on system updates.  You can
+-probably fudge your way around this somehow, but it gets very fiddly and
+-easy to get wrong.
+-
+-What we do instead is: we have an ``@all`` pseudo-user which you can
+-register packages for, typically in the core database (``click register
+---root=/usr/share/click/preinstalled --all-users``).  If a user wants to
+-remove a package, we do this by creating a deliberately broken symlink
+-pointing to ``@hidden`` in their user registration area in
+-``/opt/click.ubuntu.com/.click/users/$USERNAME/``.  When click is asked to
+-list the set of packages for a given user, it walks its way down the list of
+-databases from top (default) to bottom (core).  For each database, it checks
+-registrations for that user, followed by registrations for ``@all``.  It
+-takes the first registration for any given package name that it finds.  If
+-that registration is ``@hidden``, then it ignores the package, otherwise it
+-must be a link to the unpacked copy of the appropriate version of the
+-package.
+-
+-There are still some things that can't be done just with static files in the
+-image and instead have to be done at boot time and on session startup: we
+-have to make sure the right AppArmor profiles are loaded, do things to the
+-user's home directory like creating .desktop files, and that kind of thing.
+-We run ``click hook run-system`` at boot time and ``click hook run-user`` on
+-session startup, and these deal with running hooks for whatever packages are
+-visible in context, according to the rules above.
+-
+-The effect of all this is that we can hide a core app for a carrier by doing
+-this as root when preparing their custom overlay image::
+-
+-  click unregister --root=/custom/click --all-users PACKAGE-NAME
+-
+-This will create a symlink ``/custom/click/.click/users/@all/PACKAGE-NAME``
+-pointing to ``@hidden``.  Unless a user explicitly installs the app in
+-question, the effect of this will be that it's as if the app just isn't
+-there.  It shouldn't incur any more than a negligible cost at startup
+-(basically just a readlink call); at the moment I think we might still
+-create an AppArmor profile for it, which isn't free, but that can be fixed
+-easily enough.
+--- /dev/null
++++ b/doc/databases.rst.in
+@@ -0,0 +1,65 @@
++=========
++Databases
++=========
++
++(This is a lightly-edited copy of a brain-dump sent by Colin Watson to the
++ubuntu-phone mailing list, preserved here since it may be useful.)
++
++Click has multiple databases where packages may be unpacked: by default we
++have the "core" database for core apps (``/usr/share/click/preinstalled/``),
++the "custom" database for carrier/OEM customisations (``/custom/click/``),
++and the "default" database for user-installed applications
++(``@DEFAULT_ROOT@/``), although these are configurable in
++``/etc/click/databases/``.  Each database may have multiple unpacked
++versions of any given package.
++
++Each database may also have user registrations, which live in
++``.click/users/`` relative to the database root.  Each user has a
++subdirectory of that, which contains symlinks to the versions of each
++package they have registered.  This means that on a tablet, say, I can
++install an app without it also showing up on my children's accounts; they'd
++need to install it separately, although the disk space for the unpacked copy
++of the app would be shared.
++
++There was an idea early on that we'd deal with preinstalled apps by going
++round and registering them all for all active users on first boot.  This
++would have lots of problems for the packaging system, though.  Most notably,
++doing it that way makes it hard for a user to remove an app and make it
++stick, because it would tend to reappear on system updates.  You can
++probably fudge your way around this somehow, but it gets very fiddly and
++easy to get wrong.
++
++What we do instead is: we have an ``@all`` pseudo-user which you can
++register packages for, typically in the core database (``click register
++--root=/usr/share/click/preinstalled --all-users``).  If a user wants to
++remove a package, we do this by creating a deliberately broken symlink
++pointing to ``@hidden`` in their user registration area in
++``@DEFAULT_ROOT@/.click/users/$USERNAME/``.  When click is asked to
++list the set of packages for a given user, it walks its way down the list of
++databases from top (default) to bottom (core).  For each database, it checks
++registrations for that user, followed by registrations for ``@all``.  It
++takes the first registration for any given package name that it finds.  If
++that registration is ``@hidden``, then it ignores the package, otherwise it
++must be a link to the unpacked copy of the appropriate version of the
++package.
++
++There are still some things that can't be done just with static files in the
++image and instead have to be done at boot time and on session startup: we
++have to make sure the right AppArmor profiles are loaded, do things to the
++user's home directory like creating .desktop files, and that kind of thing.
++We run ``click hook run-system`` at boot time and ``click hook run-user`` on
++session startup, and these deal with running hooks for whatever packages are
++visible in context, according to the rules above.
++
++The effect of all this is that we can hide a core app for a carrier by doing
++this as root when preparing their custom overlay image::
++
++  click unregister --root=/custom/click --all-users PACKAGE-NAME
++
++This will create a symlink ``/custom/click/.click/users/@all/PACKAGE-NAME``
++pointing to ``@hidden``.  Unless a user explicitly installs the app in
++question, the effect of this will be that it's as if the app just isn't
++there.  It shouldn't incur any more than a negligible cost at startup
++(basically just a readlink call); at the moment I think we might still
++create an AppArmor profile for it, which isn't free, but that can be fixed
++easily enough.
+--- a/doc/hooks.rst
++++ /dev/null
+@@ -1,226 +0,0 @@
+-=====
+-Hooks
+-=====
+-
+-Rationale
+----------
+-
+-Of course, any sensible packaging format needs a hook mechanism of some
+-kind; just unpacking a filesystem tarball isn't going to cut it.  But part
+-of the point of Click packages is to make packages easier to audit by
+-removing their ability to run code at installation time.  How do we resolve
+-this?  For most application packages, the code that needs to be run is to
+-integrate with some system package; for instance, a package that provides an
+-icon may need to update icon caches.  Thus, the best way to achieve both
+-these goals at once is to make sure the code for this is always in the
+-integrated-with package.
+-
+-dpkg triggers are useful prior art for this approach.  In general they get a
+-lot of things right.  The code to process a trigger runs in the postinst,
+-which encourages an approach where trigger processing is a subset of full
+-package configuration and shares code with it.  Furthermore, the express
+-inability to pass any user data through the trigger activation mechanism
+-itself ensures that triggers must operate in a "catch up" style, ensuring
+-that whatever data store they manage is up to date with the state of the
+-parts of the file system they use as input.  This naturally results in a
+-system where the user can install integrating and integrated-with packages
+-in either order and get the same result, a valuable property which
+-developers are nevertheless unlikely to test explicitly in every case and
+-which must therefore be encouraged by design.
+-
+-There are two principal problems with dpkg triggers (aside from the point
+-that not all integrated-with packages use them, which is irrelevant because
+-they don't support any hypothetical future hook mechanisms either).  The
+-first is that the inability to pass user data through trigger activation
+-means that there is no way to indicate where an integrating package is
+-installed, which matters when the hook files it provides cannot be in a
+-single location under /usr/ but might be under /opt/ or even in per-user
+-directories.  The second is that processing dpkg triggers requires operating
+-on the system dpkg database, which is large and therefore slow.
+-
+-Let us consider an example of the sort that might in future be delivered as
+-a Click package, and one which is simple but not too simple.  Our example
+-package (com.ubuntu.example) delivers an AppArmor profile and two .desktop
+-files.  These are consumed by apparmor and desktop-integration (TBD)
+-respectively, and each lists the corresponding directory looking for files
+-to consume.
+-
+-We must assume that in the general case it will be at least inconvenient to
+-cause the integrated-with packages to look in multiple directories,
+-especially when the list of possible directories is not fixed, so we need a
+-way to cause files to exist in those directories.  On the other hand, we
+-cannot unpack directly into those directories, because that takes us back to
+-using dpkg itself, and is incompatible with system image updates where the
+-root file system is read-only.  What we can do with reasonable safety is
+-populate symlink farms.
+-
+-Specification
+--------------
+-
+- * Only system packages (i.e. .debs) may declare hooks.  Click packages must
+-   be declarative in that they may not include code executed outside
+-   AppArmor confinement, which precludes declaring hooks.
+-
+- * "System-level hooks" are those which operate on the full set of installed
+-   package/version combinations.  They may run as any (system) user.
+-   (Example: AppArmor profile handling.)
+-
+- * "User-level hooks" are those which operate on the set of packages
+-   registered by a given user.  They run as that user, and thus would
+-   generally be expected to keep their state in the user's home directory or
+-   some similar user-owned file system location.  (Example: desktop file
+-   handling.)
+-
+- * System-level and user-level hooks share a namespace.
+-
+- * A Click package may contain one or more applications (the common case
+-   will be only one).  Each application has a name.
+-
+- * An "application ID" is a string unique to each application instance: it
+-   is made up of the Click package name, the application name (must consist
+-   only of characters for a Debian source package name, Debian version and
+-   [A-Z]), and the Click package version joined by underscores, e.g.
+-   ``com.ubuntu.clock_alarm_0.1``.
+-
+- * A "short application ID" is a string unique to each application, but not
+-   necessarily to each instance of it: it is made up of the Click package
+-   name and the application name (must consist only of characters for a Debian
+-   source package name, Debian version and [A-Z]) joined by an underscore,
+-   e.g. ``com.ubuntu.clock_alarm``.  It is only valid in user-level hooks,
+-   or in system-level hooks with ``Single-Version: yes``.
+-
+- * An integrated-with system package may add ``*.hook`` files to
+-   ``/usr/share/click/hooks/``.  These are standard Debian-style control
+-   files with the following keys:
+-
+-   User-Level: yes (optional)
+-     If the ``User-Level`` key is present with the value ``yes``, the hook
+-     is a user-level hook.
+-
+-   Pattern: <file-pattern> (required)
+-     The value of ``Pattern`` is a string containing one or more
+-     substitution placeholders, as follows:
+-
+-     ``${id}``
+-       The application ID.
+-
+-     ``${short-id}``
+-       The short application ID (user-level or single-version hooks only).
+-
+-     ``${user}``
+-       The user name (user-level hooks only).
+-
+-     ``${home}``
+-       The user's home directory (user-level hooks only).
+-
+-     ``$$``
+-       The character '``$``'.
+-
+-     At least one ``${id}`` or ``${short-id}`` substitution is required.
+-     For user-level hooks, at least one of ``${user}`` and ``${home}`` must
+-     be present.
+-
+-     On install, the package manager creates the target path as a symlink to
+-     a path provided by the Click package; on upgrade, it changes the target
+-     path to be a symlink to the path in the new version of the Click
+-     package; on removal, it unlinks the target path.
+-
+-     The terms "install", "upgrade", and "removal" are taken to refer to the
+-     status of the hook rather than of the package.  That is, when upgrading
+-     between two versions of a package, if the old version uses a given hook
+-     but the new version does not, then that is a removal; if the old
+-     version does not use a given hook but the new version does, then that
+-     is an install; if both versions use a given hook, then that is an
+-     upgrade.
+-
+-     For system-level hooks, one target path exists for each unpacked
+-     version, unless "``Single-Version: yes``" is used (see below).  For
+-     user-level hooks, a target path exists only for the current version
+-     registered by each user for each package.
+-
+-     Upgrades of user-level hooks may leave the symlink pointed at the same
+-     target (since the target will itself be via a ``current`` symlink in
+-     the user registration directory).  ``Exec`` commands in hooks should
+-     take care to check the modification timestamp of the target.
+-
+-   Exec: <program> (optional)
+-     If the ``Exec`` key is present, its value is executed as if passed to
+-     the shell after the above symlink is modified.  A non-zero exit status
+-     is an error; hook implementors must be careful to make commands in
+-     ``Exec`` fields robust.  Note that this command intentionally takes no
+-     arguments, and will be run on install, upgrade, and removal; it must be
+-     written such that it causes the system to catch up with the current
+-     state of all installed hooks.  ``Exec`` commands must be idempotent.
+-
+-   Trigger: yes (optional)
+-     It will often be valuable to execute a dpkg trigger after installing a
+-     Click package to avoid code duplication between system and Click
+-     package handling, although we must do so asynchronously and any errors
+-     must not block the installation of Click packages.  If "``Trigger:
+-     yes``" is set in a ``*.hook`` file, then "``click install``" will
+-     activate an asynchronous D-Bus service at the end of installation,
+-     passing the names of all the changed paths resulting from Pattern key
+-     expansions; this will activate any file triggers matching those paths,
+-     and process all the packages that enter the triggers-pending state as a
+-     result.
+-
+-   User: <username> (required, system-level hooks only)
+-     System-level hooks are run as the user whose name is specified as the
+-     value of ``User``.  There is intentionally no default for this key, to
+-     encourage hook authors to run their hooks with the least appropriate
+-     privilege.
+-
+-   Single-Version: yes (optional, system-level hooks only)
+-     By default, system-level hooks support multiple versions of packages,
+-     so target paths may exist at multiple versions.  "``Single-Version:
+-     yes``" causes only the current version of each package to have a target
+-     path.
+-
+-   Hook-Name: <name> (optional)
+-     The value of ``Hook-Name`` is the name that Click packages may use to
+-     attach to this hook.  By default, this is the base name of the
+-     ``*.hook`` file, with the ``.hook`` extension removed.
+-
+-     Multiple hooks may use the same hook-name, in which case all those
+-     hooks will be run when installing, upgrading, or removing a Click
+-     package that attaches to that name.
+-
+- * A Click package may attach to zero or more hooks, by including a "hooks"
+-   entry in its manifest.  If present, this must be a dictionary mapping
+-   application names to hook sets; each hook set is itself a dictionary
+-   mapping hook names to paths.  The hook names are used to look up
+-   ``*.hook`` files with matching hook-names (see ``Hook-Name`` above).  The
+-   paths are relative to the directory where the Click package is unpacked,
+-   and are used as symlink targets by the package manager when creating
+-   symlinks according to the ``Pattern`` field in ``*.hook`` files.
+-
+- * There is a dh_click program which installs the ``*.hook`` files in system
+-   packages and adds maintainer script fragments to cause click to catch up
+-   with any newly-provided hooks.  It may be invoked using ``dh $@ --with
+-   click``.
+-
+-Examples
+---------
+-
+-::
+-
+-  /usr/share/click/hooks/apparmor.hook:
+-    Pattern: /var/lib/apparmor/clicks/${id}.json
+-    Exec: /usr/bin/aa-clickhook
+-    User: root
+-
+-  /usr/share/click/hooks/click-desktop.hook:
+-    User-Level: yes
+-    Pattern: /opt/click.ubuntu.com/.click/desktop-files/${user}_${id}.desktop
+-    Exec: click desktophook
+-    Hook-Name: desktop
+-
+-  com.ubuntu.example/manifest.json:
+-    "hooks": {
+-      "example-app": {
+-        "apparmor": "apparmor/example-app.json",
+-        "desktop": "example-app.desktop"
+-      }
+-    }
+-
+-TODO: copy rather than symlink, for additional robustness?
+--- /dev/null
++++ b/doc/hooks.rst.in
+@@ -0,0 +1,226 @@
++=====
++Hooks
++=====
++
++Rationale
++---------
++
++Of course, any sensible packaging format needs a hook mechanism of some
++kind; just unpacking a filesystem tarball isn't going to cut it.  But part
++of the point of Click packages is to make packages easier to audit by
++removing their ability to run code at installation time.  How do we resolve
++this?  For most application packages, the code that needs to be run is to
++integrate with some system package; for instance, a package that provides an
++icon may need to update icon caches.  Thus, the best way to achieve both
++these goals at once is to make sure the code for this is always in the
++integrated-with package.
++
++dpkg triggers are useful prior art for this approach.  In general they get a
++lot of things right.  The code to process a trigger runs in the postinst,
++which encourages an approach where trigger processing is a subset of full
++package configuration and shares code with it.  Furthermore, the express
++inability to pass any user data through the trigger activation mechanism
++itself ensures that triggers must operate in a "catch up" style, ensuring
++that whatever data store they manage is up to date with the state of the
++parts of the file system they use as input.  This naturally results in a
++system where the user can install integrating and integrated-with packages
++in either order and get the same result, a valuable property which
++developers are nevertheless unlikely to test explicitly in every case and
++which must therefore be encouraged by design.
++
++There are two principal problems with dpkg triggers (aside from the point
++that not all integrated-with packages use them, which is irrelevant because
++they don't support any hypothetical future hook mechanisms either).  The
++first is that the inability to pass user data through trigger activation
++means that there is no way to indicate where an integrating package is
++installed, which matters when the hook files it provides cannot be in a
++single location under /usr/ but might be under /opt/ or even in per-user
++directories.  The second is that processing dpkg triggers requires operating
++on the system dpkg database, which is large and therefore slow.
++
++Let us consider an example of the sort that might in future be delivered as
++a Click package, and one which is simple but not too simple.  Our example
++package (com.ubuntu.example) delivers an AppArmor profile and two .desktop
++files.  These are consumed by apparmor and desktop-integration (TBD)
++respectively, and each lists the corresponding directory looking for files
++to consume.
++
++We must assume that in the general case it will be at least inconvenient to
++cause the integrated-with packages to look in multiple directories,
++especially when the list of possible directories is not fixed, so we need a
++way to cause files to exist in those directories.  On the other hand, we
++cannot unpack directly into those directories, because that takes us back to
++using dpkg itself, and is incompatible with system image updates where the
++root file system is read-only.  What we can do with reasonable safety is
++populate symlink farms.
++
++Specification
++-------------
++
++ * Only system packages (i.e. .debs) may declare hooks.  Click packages must
++   be declarative in that they may not include code executed outside
++   AppArmor confinement, which precludes declaring hooks.
++
++ * "System-level hooks" are those which operate on the full set of installed
++   package/version combinations.  They may run as any (system) user.
++   (Example: AppArmor profile handling.)
++
++ * "User-level hooks" are those which operate on the set of packages
++   registered by a given user.  They run as that user, and thus would
++   generally be expected to keep their state in the user's home directory or
++   some similar user-owned file system location.  (Example: desktop file
++   handling.)
++
++ * System-level and user-level hooks share a namespace.
++
++ * A Click package may contain one or more applications (the common case
++   will be only one).  Each application has a name.
++
++ * An "application ID" is a string unique to each application instance: it
++   is made up of the Click package name, the application name (must consist
++   only of characters for a Debian source package name, Debian version and
++   [A-Z]), and the Click package version joined by underscores, e.g.
++   ``com.ubuntu.clock_alarm_0.1``.
++
++ * A "short application ID" is a string unique to each application, but not
++   necessarily to each instance of it: it is made up of the Click package
++   name and the application name (must consist only of characters for a Debian
++   source package name, Debian version and [A-Z]) joined by an underscore,
++   e.g. ``com.ubuntu.clock_alarm``.  It is only valid in user-level hooks,
++   or in system-level hooks with ``Single-Version: yes``.
++
++ * An integrated-with system package may add ``*.hook`` files to
++   ``/usr/share/click/hooks/``.  These are standard Debian-style control
++   files with the following keys:
++
++   User-Level: yes (optional)
++     If the ``User-Level`` key is present with the value ``yes``, the hook
++     is a user-level hook.
++
++   Pattern: <file-pattern> (required)
++     The value of ``Pattern`` is a string containing one or more
++     substitution placeholders, as follows:
++
++     ``${id}``
++       The application ID.
++
++     ``${short-id}``
++       The short application ID (user-level or single-version hooks only).
++
++     ``${user}``
++       The user name (user-level hooks only).
++
++     ``${home}``
++       The user's home directory (user-level hooks only).
++
++     ``$$``
++       The character '``$``'.
++
++     At least one ``${id}`` or ``${short-id}`` substitution is required.
++     For user-level hooks, at least one of ``${user}`` and ``${home}`` must
++     be present.
++
++     On install, the package manager creates the target path as a symlink to
++     a path provided by the Click package; on upgrade, it changes the target
++     path to be a symlink to the path in the new version of the Click
++     package; on removal, it unlinks the target path.
++
++     The terms "install", "upgrade", and "removal" are taken to refer to the
++     status of the hook rather than of the package.  That is, when upgrading
++     between two versions of a package, if the old version uses a given hook
++     but the new version does not, then that is a removal; if the old
++     version does not use a given hook but the new version does, then that
++     is an install; if both versions use a given hook, then that is an
++     upgrade.
++
++     For system-level hooks, one target path exists for each unpacked
++     version, unless "``Single-Version: yes``" is used (see below).  For
++     user-level hooks, a target path exists only for the current version
++     registered by each user for each package.
++
++     Upgrades of user-level hooks may leave the symlink pointed at the same
++     target (since the target will itself be via a ``current`` symlink in
++     the user registration directory).  ``Exec`` commands in hooks should
++     take care to check the modification timestamp of the target.
++
++   Exec: <program> (optional)
++     If the ``Exec`` key is present, its value is executed as if passed to
++     the shell after the above symlink is modified.  A non-zero exit status
++     is an error; hook implementors must be careful to make commands in
++     ``Exec`` fields robust.  Note that this command intentionally takes no
++     arguments, and will be run on install, upgrade, and removal; it must be
++     written such that it causes the system to catch up with the current
++     state of all installed hooks.  ``Exec`` commands must be idempotent.
++
++   Trigger: yes (optional)
++     It will often be valuable to execute a dpkg trigger after installing a
++     Click package to avoid code duplication between system and Click
++     package handling, although we must do so asynchronously and any errors
++     must not block the installation of Click packages.  If "``Trigger:
++     yes``" is set in a ``*.hook`` file, then "``click install``" will
++     activate an asynchronous D-Bus service at the end of installation,
++     passing the names of all the changed paths resulting from Pattern key
++     expansions; this will activate any file triggers matching those paths,
++     and process all the packages that enter the triggers-pending state as a
++     result.
++
++   User: <username> (required, system-level hooks only)
++     System-level hooks are run as the user whose name is specified as the
++     value of ``User``.  There is intentionally no default for this key, to
++     encourage hook authors to run their hooks with the least appropriate
++     privilege.
++
++   Single-Version: yes (optional, system-level hooks only)
++     By default, system-level hooks support multiple versions of packages,
++     so target paths may exist at multiple versions.  "``Single-Version:
++     yes``" causes only the current version of each package to have a target
++     path.
++
++   Hook-Name: <name> (optional)
++     The value of ``Hook-Name`` is the name that Click packages may use to
++     attach to this hook.  By default, this is the base name of the
++     ``*.hook`` file, with the ``.hook`` extension removed.
++
++     Multiple hooks may use the same hook-name, in which case all those
++     hooks will be run when installing, upgrading, or removing a Click
++     package that attaches to that name.
++
++ * A Click package may attach to zero or more hooks, by including a "hooks"
++   entry in its manifest.  If present, this must be a dictionary mapping
++   application names to hook sets; each hook set is itself a dictionary
++   mapping hook names to paths.  The hook names are used to look up
++   ``*.hook`` files with matching hook-names (see ``Hook-Name`` above).  The
++   paths are relative to the directory where the Click package is unpacked,
++   and are used as symlink targets by the package manager when creating
++   symlinks according to the ``Pattern`` field in ``*.hook`` files.
++
++ * There is a dh_click program which installs the ``*.hook`` files in system
++   packages and adds maintainer script fragments to cause click to catch up
++   with any newly-provided hooks.  It may be invoked using ``dh $@ --with
++   click``.
++
++Examples
++--------
++
++::
++
++  /usr/share/click/hooks/apparmor.hook:
++    Pattern: /var/lib/apparmor/clicks/${id}.json
++    Exec: /usr/bin/aa-clickhook
++    User: root
++
++  /usr/share/click/hooks/click-desktop.hook:
++    User-Level: yes
++    Pattern: @DEFAULT_ROOT@/.click/desktop-files/${user}_${id}.desktop
++    Exec: click desktophook
++    Hook-Name: desktop
++
++  com.ubuntu.example/manifest.json:
++    "hooks": {
++      "example-app": {
++        "apparmor": "apparmor/example-app.json",
++        "desktop": "example-app.desktop"
++      }
++    }
++
++TODO: copy rather than symlink, for additional robustness?
+--- a/doc/manpage.rst
++++ /dev/null
+@@ -1,360 +0,0 @@
+-=====
+-click
+-=====
+-
+-SYNOPSIS
+-========
+-
+-click command [options] [arguments]
+-
+-DESCRIPTION
+-===========
+-
+-*Click* is a packaging format for Ubuntu Touch applications, independent of
+-the packaging format used to deliver the underlying system.  The *click*
+-program is the basic tool used to build, install, remove, and otherwise
+-manipulate these packages.
+-
+-*click*'s various functions are available via a number of commands,
+-described in detail below.
+-
+-While *click* supports per-user installation, packages are normally unpacked
+-as a special ``clickpkg`` user, to ensure that applications cannot modify
+-their own code; it is a design goal to ensure that *click* can be used to
+-install untrusted code which is then confined using `AppArmor
+-<https://wiki.ubuntu.com/AppArmor>`_.  As such, *click* should normally be
+-run as root (e.g. using ``sudo``) when installing packages; it will drop
+-privileges as needed.
+-
+-COMMAND OVERVIEW
+-================
+-
+-::
+-
+-    click build DIRECTORY
+-    click buildsource DIRECTORY
+-    click chroot
+-    click contents PATH
+-    click framework list
+-    click hook install HOOK
+-    click hook remove HOOK
+-    click hook run-system
+-    click hook run-user
+-    click info PATH
+-    click install PACKAGE-FILE
+-    click list
+-    click pkgdir {PACKAGE-NAME|PATH}
+-    click register PACKAGE-NAME VERSION
+-    click unregister PACKAGE-NAME [VERSION]
+-    click verify PACKAGE-FILE
+-
+-COMMANDS
+-========
+-
+-click build DIRECTORY
+----------------------
+-
+-Build a Click package from the contents of DIRECTORY.  The build directory
+-must contain a JSON-formatted manifest, described further in Click's
+-file-format documentation; by default, this is expected to be in
+-``manifest.json`` at the top level of the build directory.
+-
+-The resulting ``.click`` file is written to the current directory, so to
+-avoid confusion you should generally ensure that your working directory is
+-not inside the build directory when running this command.
+-
+-While it is possible to build a new version of a Click package by unpacking
+-and repacking an existing package, this is not normally recommended because
+-it requires some care to put the manifest file back in the right place.  It
+-is best to keep your application's code in separate revision control rather
+-than relying on recovering it from packages.
+-
+-Options:
+-
+--m PATH, --manifest=PATH    Read package manifest from PATH
+-                            (default: ``manifest.json``).
+--I file-pattern, --ignore=file-pattern     Ignore the given shell-pattern
+-                                           when building the package.
+-                                           The option may be repeated multiple
+-                                           times to list multiple patterns to
+-                                           exclude.
+---no-validate               Don't run checks from click-reviewers-tools on
+-                            the resulting .click file.
+-
+-click buildsource DIRECTORY
+----------------------------
+-
+-Build a source package in ``.tar.gz`` format from the contents of DIRECTORY.
+-This allows you to distribute source code in the case where your package
+-contains compiled code (and so the Click package does not constitute its own
+-source).
+-
+-The resulting ``.tar.gz`` file is written to the current directory, so to
+-avoid confusion you should generally ensure that your working directory is
+-not inside the build directory when running this command.
+-
+-Options:
+-
+--m PATH, --manifest=PATH                   Read package manifest from PATH
+-                                           (default: ``manifest.json``).
+--I file-pattern, --ignore=file-pattern     Ignore the given shell-pattern
+-                                           when building the package.
+-                                           The option may be repeated multiple
+-                                           times to list multiple patterns to
+-                                           exclude.
+-
+-click chroot
+-------------
+-
+-Manage chroot environments for cross-building Click packages.
+-
+-Options:
+-
+--a ARCH, --architecture ARCH            Set the target architecture.
+--f FRAMEWORK, --framework FRAMEWORK     Set the target framework (default:
+-                                        ubuntu-sdk-13.10).
+--s SERIES, --series SERIES              Set the target series for
+-                                        newly-created chroots (default: a
+-                                        series appropriate for the
+-                                        framework).
+-                                        This option is mainly for debugging;
+-                                        use -f instead.
+-
+-Subcommands:
+-
+-begin-session SESSION
+-    Begin a persistent chroot session.
+-
+-create
+-    Create a chroot.
+-
+-destroy
+-    Destroy a chroot.
+-
+-end-session SESSION
+-    End a persistent chroot session.
+-
+-install [-n SESSION] PACKAGES
+-    Install packages in the chroot.
+-
+-maint [-n SESSION] COMMAND ARGUMENTS
+-    Run a maintenance command in the chroot.  Unlike ``run``, this runs its
+-    command as root inside the chroot, and its effects on the chroot will
+-    persist after ``click chroot maint`` exits.
+-
+-    If a session name is given, run the command in that session.  The
+-    session must previously have been created by ``click chroot
+-    begin-session``.
+-
+-run [-n SESSION] COMMAND ARGUMENTS
+-    Run a program in the chroot.
+-
+-    If a session name is given, run the command in that session.  The
+-    session must previously have been created by ``click chroot
+-    begin-session``.
+-
+-upgrade [-n SESSION]
+-    Upgrade the chroot.
+-
+-click contents PATH
+--------------------
+-
+-Display the contents of the Click package in PATH as a file listing.
+-
+-click framework list
+---------------------
+-
+-Display a list of available frameworks as one framework per line.
+-
+-click hook install HOOK
+------------------------
+-
+-Install files associated with HOOK for any Click packages that attach to it.
+-
+-This is normally only called by maintainer scripts of system packages, by
+-way of dh_click(1).
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+-
+-click hook remove HOOK
+-----------------------
+-
+-Remove files associated with HOOK for any Click packages that attach to it.
+-
+-This is normally only called by maintainer scripts of system packages, by
+-way of dh_click(1).
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+-
+-click hook run-system
+--------------------------
+-
+-Run all system-level hooks for all installed Click packages.  This is useful
+-when starting up from images with preinstalled packages which may not have
+-had their system-level hooks run properly when building the image.
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+-
+-click hook run-user
+------------------------
+-
+-Run all user-level hooks for all Click packages registered for a given user.
+-This is useful at session startup to catch up with packages that may have
+-been preinstalled and registered for all users.
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+---user=USER                 Run user-level hooks for USER (default: current
+-                            user).
+-
+-click info {PACKAGE-NAME|PACKAGE-FILE}
+---------------------------------------
+-
+-When given a package name (that is, a string containing no ``/``
+-characters), display the manifest for that package, if it is registered for
+-the current user.
+-
+-When given a path (that is, a string containing at least one ``/``
+-character, or a string containing no ``/`` characters that is not a
+-registered package name), attempt to treat that as a path to a file
+-containing a Click package and display the manifest for that package.
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+---user=USER                 List packages registered by USER (if you have
+-                            permission).
+-
+-click install PACKAGE-FILE
+---------------------------
+-
+-Install the Click package in PACKAGE-FILE.
+-
+-This is a low-level tool; to install a package as an ordinary user you
+-should generally use ``pkcon install-local PACKAGE-FILE`` or some
+-higher-level user interface instead, which take care to use the correct set
+-of options.  (Do not use ``sudo`` when invoking ``pkcon``, as it needs to
+-know the calling user.)
+-
+-``click install`` may be used to preinstall a package in an image such that
+-it will be available to all users by default.  When doing this, you should
+-normally install it to one of the databases defined in
+-``/etc/click/databases/`` other than the default of
+-``/opt/click.ubuntu.com``.  For example:
+-
+-    sudo click install --root=/custom/click --all-users foo.click
+-
+-The ``--force-missing-framework`` option is necessary while working with
+-development versions of SDKs which have not yet put a framework declaration
+-in place.
+-
+-You should always register installed packages either for a specific user or
+-for all users; if you do not do this then the packages may be
+-garbage-collected later.  You can do this using the ``--user`` or
+-``--all-users`` options to this command, or using the ``click register``
+-command.
+-
+-Options:
+-
+---root=PATH                 Install packages underneath PATH.
+---force-missing-framework   Install despite missing system framework.
+---user=USER                 Register package for USER.
+---all-users                 Register package for all users.
+-
+-click list
+-----------
+-
+-Display a list of installed packages, either as one package per line with
+-each line containing a package name and version separated by a tab (the
+-default), or as a JSON array of manifests.
+-
+-By default, ``click list`` shows only packages registered for the current
+-user.  The ``--all`` option causes it to show all installed packages,
+-regardless of user registrations.
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+---all                       List all installed packages.
+---user=USER                 List packages registered by USER (if you have
+-                            permission).
+---manifest                  Format output as a JSON array of manifests.
+-
+-click pkgdir {PACKAGE-NAME|PATH}
+---------------------------------
+-
+-When given a package name (that is, a string containing no ``/``
+-characters), display the directory where that package is installed, if it is
+-registered for the current user.
+-
+-When given a path (that is, a string containing at least one ``/``
+-character), attempt to treat that as a path to a file within a Click package
+-and print the top-level directory where that package is installed, if one
+-exists.  This is particularly useful in hooks that need to find the
+-top-level package directory based on a symbolic link to a single file within
+-it.
+-
+-Exits zero if and only if a directory for the given package name or path was
+-found.
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+---user=USER                 List packages registered by USER (if you have
+-                            permission).
+-
+-click register PACKAGE-NAME VERSION
+------------------------------------
+-
+-Register an installed Click package for a user.  This will normally cause
+-user-level hooks to be run for that user, which are needed for things such
+-as making the application's ``.desktop`` file available to the user
+-interface.
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+---user=USER                 Register package for USER (default: current
+-                            user).
+---all-users                 Register package for all users.
+-
+-click unregister PACKAGE-NAME [VERSION]
+----------------------------------------
+-
+-Unregister an installed Click package for a user, and remove it entirely if
+-no other users still have it registered and if it does not appear to be
+-running.  This will normally cause user-level hooks to be run for that user,
+-which are needed for things such as removing the application's ``.desktop``
+-file from the user interface.
+-
+-If a version is specified, then the registered version must match it in
+-order to be removed.
+-
+-Options:
+-
+---root=PATH                 Look for additional packages in PATH.
+---user=USER                 Unregister package for USER (default:
+-                            ``$SUDO_USER``, if known).
+---all-users                 Unregister package that was previously
+-                            registered for all users.
+-
+-click verify PACKAGE-FILE
+--------------------------
+-
+-Verify the Click package in PACKAGE-FILE.
+-
+-The ``--force-missing-framework`` option is necessary while working with
+-development versions of SDKs which have not yet put a framework declaration
+-in place.
+-
+-Options:
+-
+---root=PATH                 Install packages underneath PATH.
+---force-missing-framework   Install despite missing system framework.
+--- /dev/null
++++ b/doc/manpage.rst.in
+@@ -0,0 +1,360 @@
++=====
++click
++=====
++
++SYNOPSIS
++========
++
++click command [options] [arguments]
++
++DESCRIPTION
++===========
++
++*Click* is a packaging format for Ubuntu Touch applications, independent of
++the packaging format used to deliver the underlying system.  The *click*
++program is the basic tool used to build, install, remove, and otherwise
++manipulate these packages.
++
++*click*'s various functions are available via a number of commands,
++described in detail below.
++
++While *click* supports per-user installation, packages are normally unpacked
++as a special ``clickpkg`` user, to ensure that applications cannot modify
++their own code; it is a design goal to ensure that *click* can be used to
++install untrusted code which is then confined using `AppArmor
++<https://wiki.ubuntu.com/AppArmor>`_.  As such, *click* should normally be
++run as root (e.g. using ``sudo``) when installing packages; it will drop
++privileges as needed.
++
++COMMAND OVERVIEW
++================
++
++::
++
++    click build DIRECTORY
++    click buildsource DIRECTORY
++    click chroot
++    click contents PATH
++    click framework list
++    click hook install HOOK
++    click hook remove HOOK
++    click hook run-system
++    click hook run-user
++    click info PATH
++    click install PACKAGE-FILE
++    click list
++    click pkgdir {PACKAGE-NAME|PATH}
++    click register PACKAGE-NAME VERSION
++    click unregister PACKAGE-NAME [VERSION]
++    click verify PACKAGE-FILE
++
++COMMANDS
++========
++
++click build DIRECTORY
++---------------------
++
++Build a Click package from the contents of DIRECTORY.  The build directory
++must contain a JSON-formatted manifest, described further in Click's
++file-format documentation; by default, this is expected to be in
++``manifest.json`` at the top level of the build directory.
++
++The resulting ``.click`` file is written to the current directory, so to
++avoid confusion you should generally ensure that your working directory is
++not inside the build directory when running this command.
++
++While it is possible to build a new version of a Click package by unpacking
++and repacking an existing package, this is not normally recommended because
++it requires some care to put the manifest file back in the right place.  It
++is best to keep your application's code in separate revision control rather
++than relying on recovering it from packages.
++
++Options:
++
++-m PATH, --manifest=PATH    Read package manifest from PATH
++                            (default: ``manifest.json``).
++-I file-pattern, --ignore=file-pattern     Ignore the given shell-pattern
++                                           when building the package.
++                                           The option may be repeated multiple
++                                           times to list multiple patterns to
++                                           exclude.
++--no-validate               Don't run checks from click-reviewers-tools on
++                            the resulting .click file.
++
++click buildsource DIRECTORY
++---------------------------
++
++Build a source package in ``.tar.gz`` format from the contents of DIRECTORY.
++This allows you to distribute source code in the case where your package
++contains compiled code (and so the Click package does not constitute its own
++source).
++
++The resulting ``.tar.gz`` file is written to the current directory, so to
++avoid confusion you should generally ensure that your working directory is
++not inside the build directory when running this command.
++
++Options:
++
++-m PATH, --manifest=PATH                   Read package manifest from PATH
++                                           (default: ``manifest.json``).
++-I file-pattern, --ignore=file-pattern     Ignore the given shell-pattern
++                                           when building the package.
++                                           The option may be repeated multiple
++                                           times to list multiple patterns to
++                                           exclude.
++
++click chroot
++------------
++
++Manage chroot environments for cross-building Click packages.
++
++Options:
++
++-a ARCH, --architecture ARCH            Set the target architecture.
++-f FRAMEWORK, --framework FRAMEWORK     Set the target framework (default:
++                                        ubuntu-sdk-13.10).
++-s SERIES, --series SERIES              Set the target series for
++                                        newly-created chroots (default: a
++                                        series appropriate for the
++                                        framework).
++                                        This option is mainly for debugging;
++                                        use -f instead.
++
++Subcommands:
++
++begin-session SESSION
++    Begin a persistent chroot session.
++
++create
++    Create a chroot.
++
++destroy
++    Destroy a chroot.
++
++end-session SESSION
++    End a persistent chroot session.
++
++install [-n SESSION] PACKAGES
++    Install packages in the chroot.
++
++maint [-n SESSION] COMMAND ARGUMENTS
++    Run a maintenance command in the chroot.  Unlike ``run``, this runs its
++    command as root inside the chroot, and its effects on the chroot will
++    persist after ``click chroot maint`` exits.
++
++    If a session name is given, run the command in that session.  The
++    session must previously have been created by ``click chroot
++    begin-session``.
++
++run [-n SESSION] COMMAND ARGUMENTS
++    Run a program in the chroot.
++
++    If a session name is given, run the command in that session.  The
++    session must previously have been created by ``click chroot
++    begin-session``.
++
++upgrade [-n SESSION]
++    Upgrade the chroot.
++
++click contents PATH
++-------------------
++
++Display the contents of the Click package in PATH as a file listing.
++
++click framework list
++--------------------
++
++Display a list of available frameworks as one framework per line.
++
++click hook install HOOK
++-----------------------
++
++Install files associated with HOOK for any Click packages that attach to it.
++
++This is normally only called by maintainer scripts of system packages, by
++way of dh_click(1).
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++
++click hook remove HOOK
++----------------------
++
++Remove files associated with HOOK for any Click packages that attach to it.
++
++This is normally only called by maintainer scripts of system packages, by
++way of dh_click(1).
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++
++click hook run-system
++-------------------------
++
++Run all system-level hooks for all installed Click packages.  This is useful
++when starting up from images with preinstalled packages which may not have
++had their system-level hooks run properly when building the image.
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++
++click hook run-user
++-----------------------
++
++Run all user-level hooks for all Click packages registered for a given user.
++This is useful at session startup to catch up with packages that may have
++been preinstalled and registered for all users.
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++--user=USER                 Run user-level hooks for USER (default: current
++                            user).
++
++click info {PACKAGE-NAME|PACKAGE-FILE}
++--------------------------------------
++
++When given a package name (that is, a string containing no ``/``
++characters), display the manifest for that package, if it is registered for
++the current user.
++
++When given a path (that is, a string containing at least one ``/``
++character, or a string containing no ``/`` characters that is not a
++registered package name), attempt to treat that as a path to a file
++containing a Click package and display the manifest for that package.
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++--user=USER                 List packages registered by USER (if you have
++                            permission).
++
++click install PACKAGE-FILE
++--------------------------
++
++Install the Click package in PACKAGE-FILE.
++
++This is a low-level tool; to install a package as an ordinary user you
++should generally use ``pkcon install-local PACKAGE-FILE`` or some
++higher-level user interface instead, which take care to use the correct set
++of options.  (Do not use ``sudo`` when invoking ``pkcon``, as it needs to
++know the calling user.)
++
++``click install`` may be used to preinstall a package in an image such that
++it will be available to all users by default.  When doing this, you should
++normally install it to one of the databases defined in
++``/etc/click/databases/`` other than the default of
++``@DEFAULT_ROOT@``.  For example:
++
++    sudo click install --root=/custom/click --all-users foo.click
++
++The ``--force-missing-framework`` option is necessary while working with
++development versions of SDKs which have not yet put a framework declaration
++in place.
++
++You should always register installed packages either for a specific user or
++for all users; if you do not do this then the packages may be
++garbage-collected later.  You can do this using the ``--user`` or
++``--all-users`` options to this command, or using the ``click register``
++command.
++
++Options:
++
++--root=PATH                 Install packages underneath PATH.
++--force-missing-framework   Install despite missing system framework.
++--user=USER                 Register package for USER.
++--all-users                 Register package for all users.
++
++click list
++----------
++
++Display a list of installed packages, either as one package per line with
++each line containing a package name and version separated by a tab (the
++default), or as a JSON array of manifests.
++
++By default, ``click list`` shows only packages registered for the current
++user.  The ``--all`` option causes it to show all installed packages,
++regardless of user registrations.
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++--all                       List all installed packages.
++--user=USER                 List packages registered by USER (if you have
++                            permission).
++--manifest                  Format output as a JSON array of manifests.
++
++click pkgdir {PACKAGE-NAME|PATH}
++--------------------------------
++
++When given a package name (that is, a string containing no ``/``
++characters), display the directory where that package is installed, if it is
++registered for the current user.
++
++When given a path (that is, a string containing at least one ``/``
++character), attempt to treat that as a path to a file within a Click package
++and print the top-level directory where that package is installed, if one
++exists.  This is particularly useful in hooks that need to find the
++top-level package directory based on a symbolic link to a single file within
++it.
++
++Exits zero if and only if a directory for the given package name or path was
++found.
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++--user=USER                 List packages registered by USER (if you have
++                            permission).
++
++click register PACKAGE-NAME VERSION
++-----------------------------------
++
++Register an installed Click package for a user.  This will normally cause
++user-level hooks to be run for that user, which are needed for things such
++as making the application's ``.desktop`` file available to the user
++interface.
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++--user=USER                 Register package for USER (default: current
++                            user).
++--all-users                 Register package for all users.
++
++click unregister PACKAGE-NAME [VERSION]
++---------------------------------------
++
++Unregister an installed Click package for a user, and remove it entirely if
++no other users still have it registered and if it does not appear to be
++running.  This will normally cause user-level hooks to be run for that user,
++which are needed for things such as removing the application's ``.desktop``
++file from the user interface.
++
++If a version is specified, then the registered version must match it in
++order to be removed.
++
++Options:
++
++--root=PATH                 Look for additional packages in PATH.
++--user=USER                 Unregister package for USER (default:
++                            ``$SUDO_USER``, if known).
++--all-users                 Unregister package that was previously
++                            registered for all users.
++
++click verify PACKAGE-FILE
++-------------------------
++
++Verify the Click package in PACKAGE-FILE.
++
++The ``--force-missing-framework`` option is necessary while working with
++development versions of SDKs which have not yet put a framework declaration
++in place.
++
++Options:
++
++--root=PATH                 Install packages underneath PATH.
++--force-missing-framework   Install despite missing system framework.
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -7,6 +7,19 @@
+ PAPER         =
+ BUILDDIR      = _build
+ 
++# click-specific variable
++DEFAULT_ROOT  = /opt/click.ubuntu.com
++
++# click-specific targets
++subst: SHELL:=/bin/bash
++subst:
++	for file in *.rst.in; do sed -e "s,[@]DEFAULT_ROOT[@],$(DEFAULT_ROOT),g" > $${file/.rst.in/.rst} < $${file}; done
++
++subst-clean: SHELL:=/bin/bash
++subst-clean:
++	for file in *.rst.in; do rm -f $${file/.rst.in/.rst}; done
++# end of click-specific targets
++
+ # Internal variables.
+ PAPEROPT_a4     = -D latex_paper_size=a4
+ PAPEROPT_letter = -D latex_paper_size=letter
+--- /dev/null
++++ b/click_package/tests/integration/Makefile.am
+@@ -0,0 +1,21 @@
++NULL =
++CLEANFILES =
++
++noinst_SCRIPTS = test_hook.py \
++                 test_info.py \
++                 test_install.py \
++                 $(NULL) 
++CLEANFILES += $(noinst_SCRIPTS)
++
++do_subst = sed \
++	-e 's,[@]DEFAULT_ROOT[@],$(DEFAULT_ROOT),g' \
++	$(NULL)
++
++test_hook.py: test_hook.py.in Makefile
++	$(do_subst) < $(srcdir)/test_hook.py.in > $@
++
++test_info.py: test_info.py.in Makefile
++	$(do_subst) < $(srcdir)/test_info.py.in > $@
++
++test_install.py: test_install.py.in Makefile
++	$(do_subst) < $(srcdir)/test_install.py.in > $@
+--- a/configure.ac
++++ b/configure.ac
+@@ -160,6 +160,7 @@
+ 	Makefile
+ 	click_package/Makefile
+ 	click_package/tests/Makefile
++	click_package/tests/integration/Makefile
+ 	click_package/tests/config.py
+ 	conf/Makefile
+ 	conf/databases/Makefile
+--- a/click_package/tests/test_database.py
++++ /dev/null
+@@ -1,917 +0,0 @@
+-# Copyright (C) 2013 Canonical Ltd.
+-# Author: Colin Watson <cjwatson@ubuntu.com>
+-
+-# This program is free software: you can redistribute it and/or modify
+-# it under the terms of the GNU General Public License as published by
+-# the Free Software Foundation; version 3 of the License.
+-#
+-# This program is distributed in the hope that it will be useful,
+-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-# GNU General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-"""Unit tests for click_package.database."""
+-
+-from __future__ import print_function
+-
+-__metaclass__ = type
+-__all__ = [
+-    "TestClickDB",
+-    "TestClickInstalledPackage",
+-    "TestClickSingleDB",
+-    ]
+-
+-
+-from functools import partial
+-from itertools import takewhile
+-import json
+-import os
+-import unittest
+-
+-from gi.repository import Click, GLib
+-from six import integer_types
+-
+-from click_package.json_helpers import json_array_to_python, json_object_to_python
+-from click_package.tests.gimock_types import Passwd
+-from click_package.tests.helpers import TestCase, mkfile, touch
+-
+-
+-class TestClickInstalledPackage(TestCase):
+-    def setUp(self):
+-        super(TestClickInstalledPackage, self).setUp()
+-        self.foo = Click.InstalledPackage.new(
+-            "foo", "1.0", "/path/to/foo/1.0", False)
+-        self.foo_clone = Click.InstalledPackage.new(
+-            "foo", "1.0", "/path/to/foo/1.0", False)
+-        self.foo_different_version = Click.InstalledPackage.new(
+-            "foo", "2.0", "/path/to/foo/1.0", False)
+-        self.foo_different_path = Click.InstalledPackage.new(
+-            "foo", "1.0", "/path/to/foo/2.0", False)
+-        self.foo_different_writeable = Click.InstalledPackage.new(
+-            "foo", "1.0", "/path/to/foo/1.0", True)
+-        self.bar = Click.InstalledPackage.new(
+-            "bar", "1.0", "/path/to/foo/1.0", False)
+-
+-    def test_hash(self):
+-        self.assertIsInstance(self.foo.hash(), integer_types)
+-        self.assertEqual(self.foo.hash(), self.foo_clone.hash())
+-        self.assertNotEqual(self.foo.hash(), self.foo_different_version.hash())
+-        self.assertNotEqual(self.foo.hash(), self.foo_different_path.hash())
+-        self.assertNotEqual(
+-            self.foo.hash(), self.foo_different_writeable.hash())
+-        self.assertNotEqual(self.foo.hash(), self.bar.hash())
+-
+-    # GLib doesn't allow passing an InstalledPackage as an argument here.
+-    @unittest.expectedFailure
+-    def test_equal_to(self):
+-        self.assertTrue(self.foo.equal_to(self.foo_clone))
+-        self.assertFalse(self.foo.equal_to(self.foo_different_version))
+-        self.assertFalse(self.foo.equal_to(self.foo_different_path))
+-        self.assertFalse(self.foo.equal_to(self.foo_different_writeable))
+-        self.assertFalse(self.foo.equal_to(self.bar))
+-
+-
+-class TestClickSingleDB(TestCase):
+-    def setUp(self):
+-        super(TestClickSingleDB, self).setUp()
+-        self.use_temp_dir()
+-        self.master_db = Click.DB()
+-        self.master_db.add(self.temp_dir)
+-        self.db = self.master_db.get(self.master_db.props.size - 1)
+-        self.spawn_calls = []
+-
+-    def g_spawn_sync_side_effect(self, status_map, working_directory, argv,
+-                                 envp, flags, child_setup, user_data,
+-                                 standard_output, standard_error, exit_status,
+-                                 error):
+-        self.spawn_calls.append(list(takewhile(lambda x: x is not None, argv)))
+-        if argv[0] in status_map:
+-            exit_status[0] = status_map[argv[0]]
+-        else:
+-            self.delegate_to_original("g_spawn_sync")
+-        return 0
+-
+-    def _installed_packages_tuplify(self, ip):
+-        return [(p.props.package, p.props.version, p.props.path) for p in ip]
+-
+-    def test_path(self):
+-        path = os.path.join(self.temp_dir, "a", "1.0")
+-        os.makedirs(path)
+-        self.assertEqual(path, self.db.get_path("a", "1.0"))
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST, self.db.get_path, "a", "1.1")
+-
+-    def test_has_package_version(self):
+-        os.makedirs(os.path.join(self.temp_dir, "a", "1.0"))
+-        self.assertTrue(self.db.has_package_version("a", "1.0"))
+-        self.assertFalse(self.db.has_package_version("a", "1.1"))
+-
+-    def test_packages_current(self):
+-        os.makedirs(os.path.join(self.temp_dir, "a", "1.0"))
+-        os.makedirs(os.path.join(self.temp_dir, "a", "1.1"))
+-        a_current = os.path.join(self.temp_dir, "a", "current")
+-        os.symlink("1.1", a_current)
+-        os.makedirs(os.path.join(self.temp_dir, "b", "0.1"))
+-        b_current = os.path.join(self.temp_dir, "b", "current")
+-        os.symlink("0.1", b_current)
+-        os.makedirs(os.path.join(self.temp_dir, "c", "2.0"))
+-        self.assertEqual([
+-            ("a", "1.1", a_current),
+-            ("b", "0.1", b_current),
+-        ], self._installed_packages_tuplify(
+-            self.db.get_packages(all_versions=False)))
+-
+-    def test_packages_all(self):
+-        os.makedirs(os.path.join(self.temp_dir, "a", "1.0"))
+-        os.makedirs(os.path.join(self.temp_dir, "a", "1.1"))
+-        os.symlink("1.1", os.path.join(self.temp_dir, "a", "current"))
+-        os.makedirs(os.path.join(self.temp_dir, "b", "0.1"))
+-        os.symlink("0.1", os.path.join(self.temp_dir, "b", "current"))
+-        os.makedirs(os.path.join(self.temp_dir, "c", "2.0"))
+-        self.assertEqual([
+-            ("a", "1.0", os.path.join(self.temp_dir, "a", "1.0")),
+-            ("a", "1.1", os.path.join(self.temp_dir, "a", "1.1")),
+-            ("b", "0.1", os.path.join(self.temp_dir, "b", "0.1")),
+-            ("c", "2.0", os.path.join(self.temp_dir, "c", "2.0")),
+-        ], self._installed_packages_tuplify(
+-            self.db.get_packages(all_versions=True)))
+-
+-    def test_packages_all_ignores_non_directory(self):
+-        os.makedirs(os.path.join(self.temp_dir, "a", "1.0"))
+-        touch(os.path.join(self.temp_dir, "file"))
+-        self.assertEqual([
+-            ("a", "1.0", os.path.join(self.temp_dir, "a", "1.0")),
+-        ], self._installed_packages_tuplify(
+-            self.db.get_packages(all_versions=True)))
+-
+-    def test_manifest(self):
+-        manifest_path = os.path.join(
+-            self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
+-        manifest_obj = {
+-            "name": "a", "version": "1.0", "hooks": {"a-app": {}},
+-            "_should_be_removed": "",
+-        }
+-        with mkfile(manifest_path) as manifest:
+-            json.dump(manifest_obj, manifest)
+-        del manifest_obj["_should_be_removed"]
+-        manifest_obj["_directory"] = os.path.join(self.temp_dir, "a", "1.0")
+-        self.assertEqual(
+-            manifest_obj,
+-            json_object_to_python(self.db.get_manifest("a", "1.0")))
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST,
+-            self.db.get_manifest, "a", "1.1")
+-        self.assertEqual(
+-            manifest_obj,
+-            json.loads(self.db.get_manifest_as_string("a", "1.0")))
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST,
+-            self.db.get_manifest_as_string, "a", "1.1")
+-
+-    def test_manifest_bad(self):
+-        manifest_path = os.path.join(
+-            self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
+-        with mkfile(manifest_path) as manifest:
+-            print("{bad syntax", file=manifest)
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.BAD_MANIFEST, self.db.get_manifest, "a", "1.0")
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.BAD_MANIFEST,
+-            self.db.get_manifest_as_string, "a", "1.0")
+-        manifest_path = os.path.join(
+-            self.temp_dir, "a", "1.1", ".click", "info", "a.manifest")
+-        with mkfile(manifest_path) as manifest:
+-            print("[0]", file=manifest)
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.BAD_MANIFEST, self.db.get_manifest, "a", "1.1")
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.BAD_MANIFEST,
+-            self.db.get_manifest_as_string, "a", "1.1")
+-
+-    def test_app_running(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync",
+-                ) as (enter, preloads):
+-            enter()
+-            preloads["click_find_on_path"].return_value = True
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
+-            self.assertTrue(self.db.app_running("foo", "bar", "1.0"))
+-            self.assertEqual(
+-                [[b"lomiri-app-pid", b"foo_bar_1.0"]], self.spawn_calls)
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 1 << 8})
+-            self.assertFalse(self.db.app_running("foo", "bar", "1.0"))
+-
+-    def test_any_app_running_ubuntu_app_pid(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync",
+-                ) as (enter, preloads):
+-            enter()
+-            manifest_path = os.path.join(
+-                self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
+-            with mkfile(manifest_path) as manifest:
+-                json.dump({"hooks": {"a-app": {}}}, manifest)
+-            preloads["click_find_on_path"].side_effect = (
+-                lambda command: command == b"lomiri-app-pid")
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
+-            self.assertTrue(self.db.any_app_running("a", "1.0"))
+-            self.assertEqual(
+-                [[b"lomiri-app-pid", b"a_a-app_1.0"]], self.spawn_calls)
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 1 << 8})
+-            self.assertFalse(self.db.any_app_running("a", "1.0"))
+-
+-    def test_any_app_running_no_app_pid_command(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync",
+-                ) as (enter, preloads):
+-            enter()
+-            manifest_path = os.path.join(
+-                self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
+-            with mkfile(manifest_path) as manifest:
+-                json.dump({"hooks": {"a-app": {}}}, manifest)
+-            preloads["click_find_on_path"].return_value = False
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
+-            self.assertFalse(self.db.any_app_running("a", "1.0"))
+-
+-    def test_any_app_running_missing_app(self):
+-        with self.run_in_subprocess("click_find_on_path") as (enter, preloads):
+-            enter()
+-            preloads["click_find_on_path"].side_effect = (
+-                lambda command: command == b"lomiri-app-pid")
+-            self.assertRaisesDatabaseError(
+-                Click.DatabaseError.DOES_NOT_EXIST,
+-                self.db.any_app_running, "a", "1.0")
+-
+-    def test_any_app_running_bad_manifest(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync",
+-                ) as (enter, preloads):
+-            enter()
+-            manifest_path = os.path.join(
+-                self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
+-            with mkfile(manifest_path) as manifest:
+-                print("{bad syntax", file=manifest)
+-            preloads["click_find_on_path"].side_effect = (
+-                lambda command: command == b"lomiri-app-pid")
+-            self.assertFalse(self.db.any_app_running("a", "1.0"))
+-            self.assertFalse(preloads["g_spawn_sync"].called)
+-
+-    def test_any_app_running_no_hooks(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync",
+-                ) as (enter, preloads):
+-            enter()
+-            manifest_path = os.path.join(
+-                self.temp_dir, "a", "1.0", ".click", "info", "a.manifest")
+-            with mkfile(manifest_path) as manifest:
+-                json.dump({}, manifest)
+-            preloads["click_find_on_path"].side_effect = (
+-                lambda command: command == b"lomiri-app-pid")
+-            self.assertFalse(self.db.any_app_running("a", "1.0"))
+-            self.assertFalse(preloads["g_spawn_sync"].called)
+-
+-    def test_maybe_remove_registered(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync",
+-                ) as (enter, preloads):
+-            enter()
+-            version_path = os.path.join(self.temp_dir, "a", "1.0")
+-            manifest_path = os.path.join(
+-                version_path, ".click", "info", "a.manifest")
+-            with mkfile(manifest_path) as manifest:
+-                json.dump({"hooks": {"a-app": {}}}, manifest)
+-            user_path = os.path.join(
+-                self.temp_dir, ".click", "users", "test-user", "a")
+-            os.makedirs(os.path.dirname(user_path))
+-            os.symlink(version_path, user_path)
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
+-            preloads["click_find_on_path"].return_value = True
+-            self.db.maybe_remove("a", "1.0")
+-            self.assertTrue(os.path.exists(version_path))
+-            self.assertTrue(os.path.exists(user_path))
+-
+-    def test_maybe_remove_running(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync",
+-                ) as (enter, preloads):
+-            enter()
+-            version_path = os.path.join(self.temp_dir, "a", "1.0")
+-            manifest_path = os.path.join(
+-                version_path, ".click", "info", "a.manifest")
+-            with mkfile(manifest_path) as manifest:
+-                json.dump({"hooks": {"a-app": {}}}, manifest)
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 0})
+-            preloads["click_find_on_path"].return_value = True
+-            self.db.maybe_remove("a", "1.0")
+-            self.assertTrue(os.path.exists(version_path))
+-
+-    def test_maybe_remove_not_running(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync",
+-                ) as (enter, preloads):
+-            enter()
+-            os.environ["TEST_QUIET"] = "1"
+-            version_path = os.path.join(self.temp_dir, "a", "1.0")
+-            manifest_path = os.path.join(
+-                version_path, ".click", "info", "a.manifest")
+-            with mkfile(manifest_path) as manifest:
+-                json.dump({"hooks": {"a-app": {}}}, manifest)
+-            current_path = os.path.join(self.temp_dir, "a", "current")
+-            os.symlink("1.0", current_path)
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 1 << 8})
+-            preloads["click_find_on_path"].return_value = True
+-            self.db.maybe_remove("a", "1.0")
+-            self.assertFalse(os.path.exists(os.path.join(self.temp_dir, "a")))
+-
+-    def test_gc(self):
+-        with self.run_in_subprocess(
+-                "click_find_on_path", "g_spawn_sync", "getpwnam"
+-                ) as (enter, preloads):
+-            enter()
+-            preloads["getpwnam"].side_effect = (
+-                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+-            os.environ["TEST_QUIET"] = "1"
+-            a_path = os.path.join(self.temp_dir, "a", "1.0")
+-            a_manifest_path = os.path.join(
+-                a_path, ".click", "info", "a.manifest")
+-            with mkfile(a_manifest_path) as manifest:
+-                json.dump({"hooks": {"a-app": {}}}, manifest)
+-            b_path = os.path.join(self.temp_dir, "b", "1.0")
+-            b_manifest_path = os.path.join(
+-                b_path, ".click", "info", "b.manifest")
+-            with mkfile(b_manifest_path) as manifest:
+-                json.dump({"hooks": {"b-app": {}}}, manifest)
+-            c_path = os.path.join(self.temp_dir, "c", "1.0")
+-            c_manifest_path = os.path.join(
+-                c_path, ".click", "info", "c.manifest")
+-            with mkfile(c_manifest_path) as manifest:
+-                json.dump({"hooks": {"c-app": {}}}, manifest)
+-            a_user_path = os.path.join(
+-                self.temp_dir, ".click", "users", "test-user", "a")
+-            os.makedirs(os.path.dirname(a_user_path))
+-            os.symlink(a_path, a_user_path)
+-            b_gcinuse_path = os.path.join(
+-                self.temp_dir, ".click", "users", "@gcinuse", "b")
+-            os.makedirs(os.path.dirname(b_gcinuse_path))
+-            os.symlink(b_path, b_gcinuse_path)
+-            preloads["g_spawn_sync"].side_effect = partial(
+-                self.g_spawn_sync_side_effect, {b"lomiri-app-pid": 1 << 8})
+-            preloads["click_find_on_path"].return_value = True
+-            self.db.gc()
+-            self.assertTrue(os.path.exists(a_path))
+-            self.assertFalse(os.path.exists(b_gcinuse_path))
+-            self.assertFalse(os.path.exists(b_path))
+-            self.assertFalse(os.path.exists(c_path))
+-
+-    def test_gc_ignores_non_directory(self):
+-        with self.run_in_subprocess(
+-                "getpwnam"
+-                ) as (enter, preloads):
+-            enter()
+-            preloads["getpwnam"].side_effect = (
+-                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+-            a_path = os.path.join(self.temp_dir, "a", "1.0")
+-            a_manifest_path = os.path.join(
+-                a_path, ".click", "info", "a.manifest")
+-            with mkfile(a_manifest_path) as manifest:
+-                json.dump({"hooks": {"a-app": {}}}, manifest)
+-            a_user_path = os.path.join(
+-                self.temp_dir, ".click", "users", "test-user", "a")
+-            os.makedirs(os.path.dirname(a_user_path))
+-            os.symlink(a_path, a_user_path)
+-            touch(os.path.join(self.temp_dir, "file"))
+-            self.db.gc()
+-            self.assertTrue(os.path.exists(a_path))
+-
+-    # Test that bug #1479001 is fixed. Uses the following scenario:
+-    #
+-    # - Two databases: db1 and db2.
+-    # - One package, "test-package":
+-    #    - Versions 1 and 3 installed in db1
+-    #    - Version 2 installed in db2
+-    #    - User has a registration in db2 for version 2, where the registration
+-    #      timestamp precedes the installation of version 3.
+-    #
+-    # In this case, bug #1479001 expects that the user's registration would
+-    # be updated to 3, since it was installed after the user registered for
+-    # 2, which implies that the user would like the update to 3.
+-    def test_gc_fixes_old_user_registrations(self):
+-        with self.run_in_subprocess("getpwnam") as (enter, preloads):
+-            enter()
+-
+-            # Setup the system hook
+-            preloads["getpwnam"].side_effect = (
+-                lambda name: self.make_pointer(Passwd(pw_dir=b"/foo")))
+-
+-            # Setup both databases
+-            db1 = os.path.join(self.temp_dir, "db1")
+-            db2 = os.path.join(self.temp_dir, "db2")
+-            db = Click.DB()
+-            db.add(db1)
+-            db.add(db2)
+-
+-            # Prepare common manifest for the packages
+-            manifest = {"hooks": {"test-app": {"test": "foo"}}}
+-
+-            # Setup versions 1.0 and 3.0 of package in db1
+-            version1 = os.path.join(db1, "test-package", "1.0")
+-            with mkfile(os.path.join(version1, ".click", "info",
+-                        "test-package.manifest")) as f:
+-                json.dump(manifest, f)
+-
+-            version3 = os.path.join(db1, "test-package", "3.0")
+-            with mkfile(os.path.join(version3, ".click", "info",
+-                        "test-package.manifest")) as f:
+-                json.dump(manifest, f)
+-
+-            # Setup version 0.2 of package in db2
+-            version2 = os.path.join(db2, "test-package", "2.0")
+-            with mkfile(os.path.join(version2, ".click", "info",
+-                        "test-package.manifest")) as f:
+-                json.dump(manifest, f)
+-
+-            # Setup the user registration for 2.0 in db2.
+-            registrationPath = os.path.join(
+-                db2, ".click", "users", "foo", "test-package")
+-            os.makedirs(os.path.dirname(registrationPath))
+-            os.symlink(version2, registrationPath)
+-
+-            # Run the garbage collection to update the registrations.
+-            db.gc()
+-
+-            # Verify that the user still has a registration for the package,
+-            # and that it's now registered for version 3.0.
+-            self.assertTrue(os.path.lexists(registrationPath))
+-            self.assertEqual(version3, os.readlink(registrationPath))
+-
+-            user_db = Click.User.for_user(db, "foo")
+-            try:
+-                version = user_db.get_version("test-package")
+-                self.assertEqual("3.0", version)
+-            except:
+-                self.fail("No user registration for 'test-package'")
+-
+-    def _make_ownership_test(self):
+-        path = os.path.join(self.temp_dir, "a", "1.0")
+-        touch(os.path.join(path, ".click", "info", "a.manifest"))
+-        os.symlink("1.0", os.path.join(self.temp_dir, "a", "current"))
+-        user_path = os.path.join(
+-            self.temp_dir, ".click", "users", "test-user", "a")
+-        os.makedirs(os.path.dirname(user_path))
+-        os.symlink(path, user_path)
+-        touch(os.path.join(self.temp_dir, ".click", "log"))
+-
+-    def _set_stat_side_effect(self, preloads, side_effect, limit):
+-        limit = limit.encode()
+-        for func_name in self.STAT_FUNCTIONS:
+-            if func_name.startswith("__x"): # __xstat{,64}
+-                preloads[func_name].side_effect = (
+-                    partial(side_effect, func_name, limit))
+-            else: # stat{,64}, __stat64_time64
+-                preloads[func_name].side_effect = (
+-                    partial(side_effect, func_name, limit, 3))
+-
+-    def test_ensure_ownership_quick_if_correct(self):
+-        def stat_side_effect(name, limit, ver, path, buf):
+-            st = self.convert_stat_pointer(name, buf)
+-            if path == limit:
+-                st.st_uid = 1
+-                st.st_gid = 1
+-                return 0
+-            else:
+-                self.delegate_to_original(name)
+-                return -1
+-
+-        with self.run_in_subprocess(
+-                "chown", "getpwnam", *self.STAT_FUNCTIONS
+-                ) as (enter, preloads):
+-            enter()
+-            preloads["getpwnam"].side_effect = (
+-                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+-            self._set_stat_side_effect(
+-                preloads, stat_side_effect, self.db.props.root)
+-
+-            self._make_ownership_test()
+-            self.db.ensure_ownership()
+-            self.assertFalse(preloads["chown"].called)
+-
+-    def test_ensure_ownership(self):
+-        def stat_side_effect(name, limit, ver, path, buf):
+-            st = self.convert_stat_pointer(name, buf)
+-            if path == limit:
+-                st.st_uid = 2
+-                st.st_gid = 2
+-                return 0
+-            else:
+-                self.delegate_to_original(name)
+-                return -1
+-
+-        with self.run_in_subprocess(
+-                "chown", "getpwnam", *self.STAT_FUNCTIONS
+-                ) as (enter, preloads):
+-            enter()
+-            preloads["getpwnam"].side_effect = (
+-                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+-            self._set_stat_side_effect(
+-                preloads, stat_side_effect, self.db.props.root)
+-
+-            self._make_ownership_test()
+-            self.db.ensure_ownership()
+-            expected_paths = [
+-                self.temp_dir,
+-                os.path.join(self.temp_dir, ".click"),
+-                os.path.join(self.temp_dir, ".click", "log"),
+-                os.path.join(self.temp_dir, ".click", "users"),
+-                os.path.join(self.temp_dir, "a"),
+-                os.path.join(self.temp_dir, "a", "1.0"),
+-                os.path.join(self.temp_dir, "a", "1.0", ".click"),
+-                os.path.join(self.temp_dir, "a", "1.0", ".click", "info"),
+-                os.path.join(
+-                    self.temp_dir, "a", "1.0", ".click", "info", "a.manifest"),
+-                os.path.join(self.temp_dir, "a", "current"),
+-                ]
+-            self.assertCountEqual(
+-                [path.encode() for path in expected_paths],
+-                [args[0][0] for args in preloads["chown"].call_args_list])
+-            self.assertCountEqual(
+-                [(1, 1)],
+-                set(args[0][1:] for args in preloads["chown"].call_args_list))
+-
+-    def test_ensure_ownership_missing_clickpkg_user(self):
+-        with self.run_in_subprocess("getpwnam") as (enter, preloads):
+-            enter()
+-            preloads["getpwnam"].return_value = None
+-            self.assertRaisesDatabaseError(
+-                Click.DatabaseError.ENSURE_OWNERSHIP, self.db.ensure_ownership)
+-
+-    def test_ensure_ownership_failed_chown(self):
+-        def stat_side_effect(name, limit, ver, path, buf):
+-            st = self.convert_stat_pointer(name, buf)
+-            if path == limit:
+-                st.st_uid = 2
+-                st.st_gid = 2
+-                return 0
+-            else:
+-                self.delegate_to_original(name)
+-                return -1
+-
+-        with self.run_in_subprocess(
+-                "chown", "getpwnam", *self.STAT_FUNCTIONS
+-                ) as (enter, preloads):
+-            enter()
+-            preloads["chown"].return_value = -1
+-            preloads["getpwnam"].side_effect = (
+-                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+-            self._set_stat_side_effect(
+-                preloads, stat_side_effect, self.db.props.root)
+-
+-            self._make_ownership_test()
+-            self.assertRaisesDatabaseError(
+-                Click.DatabaseError.ENSURE_OWNERSHIP, self.db.ensure_ownership)
+-
+-
+-class TestClickDB(TestCase):
+-    def setUp(self):
+-        super(TestClickDB, self).setUp()
+-        self.use_temp_dir()
+-
+-    def _installed_packages_tuplify(self, ip):
+-        return [
+-            (p.props.package, p.props.version, p.props.path, p.props.writeable)
+-            for p in ip]
+-
+-    def test_read_configuration(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = /a", file=a)
+-        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
+-            print("[Click Database]", file=b)
+-            print("root = /b", file=b)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        db.add("/c")
+-        self.assertEqual(3, db.props.size)
+-        self.assertEqual(
+-            ["/a", "/b", "/c"],
+-            [db.get(i).props.root for i in range(db.props.size)])
+-
+-    def test_no_read(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = /a", file=a)
+-        db = Click.DB()
+-        self.assertEqual(0, db.props.size)
+-
+-    def test_no_db_conf_errors(self):
+-        db = Click.DB()
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.INVALID, db.get, 0)
+-        self.assertEqual(db.props.overlay, "")
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.INVALID, db.maybe_remove, "something", "1.0")
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.INVALID, db.gc)
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.INVALID, db.ensure_ownership)
+-
+-    def test_read_nonexistent(self):
+-        db = Click.DB()
+-        db.read(db_dir=os.path.join(self.temp_dir, "nonexistent"))
+-        self.assertEqual(0, db.props.size)
+-
+-    def test_read_not_directory(self):
+-        path = os.path.join(self.temp_dir, "file")
+-        touch(path)
+-        db = Click.DB()
+-        self.assertRaisesFileError(GLib.FileError.NOTDIR, db.read, db_dir=path)
+-
+-    def test_add(self):
+-        db = Click.DB()
+-        self.assertEqual(0, db.props.size)
+-        db.add("/new/root")
+-        self.assertEqual(1, db.props.size)
+-        self.assertEqual("/new/root", db.get(0).props.root)
+-
+-    def test_overlay(self):
+-        with open(os.path.join(self.temp_dir, "00_custom.conf"), "w") as f:
+-            print("[Click Database]", file=f)
+-            print("root = /custom", file=f)
+-        with open(os.path.join(self.temp_dir, "99_default.conf"), "w") as f:
+-            print("[Click Database]", file=f)
+-            print("root = /opt/click.ubuntu.com", file=f)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        self.assertEqual("/opt/click.ubuntu.com", db.props.overlay)
+-
+-    def test_path(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
+-        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
+-            print("[Click Database]", file=b)
+-            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST, db.get_path, "pkg", "1.0")
+-        os.makedirs(os.path.join(self.temp_dir, "a", "pkg", "1.0"))
+-        self.assertEqual(
+-            os.path.join(self.temp_dir, "a", "pkg", "1.0"),
+-            db.get_path("pkg", "1.0"))
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST, db.get_path, "pkg", "1.1")
+-        os.makedirs(os.path.join(self.temp_dir, "b", "pkg", "1.0"))
+-        # The deepest copy of the same package/version is still preferred.
+-        self.assertEqual(
+-            os.path.join(self.temp_dir, "a", "pkg", "1.0"),
+-            db.get_path("pkg", "1.0"))
+-        os.makedirs(os.path.join(self.temp_dir, "b", "pkg", "1.1"))
+-        self.assertEqual(
+-            os.path.join(self.temp_dir, "b", "pkg", "1.1"),
+-            db.get_path("pkg", "1.1"))
+-
+-    def test_has_package_version(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
+-        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
+-            print("[Click Database]", file=b)
+-            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        self.assertFalse(db.has_package_version("pkg", "1.0"))
+-        os.makedirs(os.path.join(self.temp_dir, "a", "pkg", "1.0"))
+-        self.assertTrue(db.has_package_version("pkg", "1.0"))
+-        self.assertFalse(db.has_package_version("pkg", "1.1"))
+-        os.makedirs(os.path.join(self.temp_dir, "b", "pkg", "1.0"))
+-        self.assertTrue(db.has_package_version("pkg", "1.0"))
+-        os.makedirs(os.path.join(self.temp_dir, "b", "pkg", "1.1"))
+-        self.assertTrue(db.has_package_version("pkg", "1.1"))
+-
+-    def test_packages_current(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
+-        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
+-            print("[Click Database]", file=b)
+-            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        self.assertEqual([], list(db.get_packages(all_versions=False)))
+-        os.makedirs(os.path.join(self.temp_dir, "a", "pkg1", "1.0"))
+-        os.symlink("1.0", os.path.join(self.temp_dir, "a", "pkg1", "current"))
+-        os.makedirs(os.path.join(self.temp_dir, "b", "pkg1", "1.1"))
+-        pkg1_current = os.path.join(self.temp_dir, "b", "pkg1", "current")
+-        os.symlink("1.1", pkg1_current)
+-        os.makedirs(os.path.join(self.temp_dir, "b", "pkg2", "0.1"))
+-        pkg2_current = os.path.join(self.temp_dir, "b", "pkg2", "current")
+-        os.symlink("0.1", pkg2_current)
+-        self.assertEqual([
+-            ("pkg1", "1.1", pkg1_current, True),
+-            ("pkg2", "0.1", pkg2_current, True),
+-        ], self._installed_packages_tuplify(
+-            db.get_packages(all_versions=False)))
+-
+-    def test_packages_all(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
+-        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
+-            print("[Click Database]", file=b)
+-            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        self.assertEqual([], list(db.get_packages(all_versions=True)))
+-        os.makedirs(os.path.join(self.temp_dir, "a", "pkg1", "1.0"))
+-        os.symlink("1.0", os.path.join(self.temp_dir, "a", "pkg1", "current"))
+-        os.makedirs(os.path.join(self.temp_dir, "b", "pkg1", "1.1"))
+-        os.symlink("1.1", os.path.join(self.temp_dir, "b", "pkg1", "current"))
+-        os.makedirs(os.path.join(self.temp_dir, "b", "pkg2", "0.1"))
+-        os.symlink("0.1", os.path.join(self.temp_dir, "b", "pkg2", "current"))
+-        self.assertEqual([
+-            ("pkg1", "1.1", os.path.join(self.temp_dir, "b", "pkg1", "1.1"),
+-             True),
+-            ("pkg2", "0.1", os.path.join(self.temp_dir, "b", "pkg2", "0.1"),
+-             True),
+-            ("pkg1", "1.0", os.path.join(self.temp_dir, "a", "pkg1", "1.0"),
+-             False),
+-        ], self._installed_packages_tuplify(
+-            db.get_packages(all_versions=True)))
+-
+-    def test_manifest(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
+-        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
+-            print("[Click Database]", file=b)
+-            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST, db.get_manifest, "pkg", "1.0")
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST,
+-            db.get_manifest_as_string, "pkg", "1.0")
+-        a_manifest_path = os.path.join(
+-            self.temp_dir, "a", "pkg", "1.0", ".click", "info", "pkg.manifest")
+-        a_manifest_obj = {"name": "pkg", "version": "1.0"}
+-        with mkfile(a_manifest_path) as a_manifest:
+-            json.dump(a_manifest_obj, a_manifest)
+-        a_manifest_obj["_directory"] = os.path.join(
+-            self.temp_dir, "a", "pkg", "1.0")
+-        self.assertEqual(
+-            a_manifest_obj,
+-            json_object_to_python(db.get_manifest("pkg", "1.0")))
+-        self.assertEqual(
+-            a_manifest_obj,
+-            json.loads(db.get_manifest_as_string("pkg", "1.0")))
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST, db.get_manifest, "pkg", "1.1")
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.DOES_NOT_EXIST,
+-            db.get_manifest_as_string, "pkg", "1.1")
+-        b_manifest_path = os.path.join(
+-            self.temp_dir, "b", "pkg", "1.1", ".click", "info", "pkg.manifest")
+-        b_manifest_obj = {"name": "pkg", "version": "1.1"}
+-        with mkfile(b_manifest_path) as b_manifest:
+-            json.dump(b_manifest_obj, b_manifest)
+-        b_manifest_obj["_directory"] = os.path.join(
+-            self.temp_dir, "b", "pkg", "1.1")
+-        self.assertEqual(
+-            b_manifest_obj,
+-            json_object_to_python(db.get_manifest("pkg", "1.1")))
+-        self.assertEqual(
+-            b_manifest_obj,
+-            json.loads(db.get_manifest_as_string("pkg", "1.1")))
+-
+-    def test_manifest_bad(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        manifest_path = os.path.join(
+-            self.temp_dir, "a", "pkg", "1.0", ".click", "info", "pkg.manifest")
+-        with mkfile(manifest_path) as manifest:
+-            print("{bad syntax", file=manifest)
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.BAD_MANIFEST, db.get_manifest, "pkg", "1.0")
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.BAD_MANIFEST,
+-            db.get_manifest_as_string, "pkg", "1.0")
+-        manifest_path = os.path.join(
+-            self.temp_dir, "a", "pkg", "1.1", ".click", "info", "pkg.manifest")
+-        with mkfile(manifest_path) as manifest:
+-            print("[0]", file=manifest)
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.BAD_MANIFEST, db.get_manifest, "pkg", "1.0")
+-        self.assertRaisesDatabaseError(
+-            Click.DatabaseError.BAD_MANIFEST,
+-            db.get_manifest_as_string, "pkg", "1.0")
+-
+-    def test_manifests_current(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
+-        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
+-            print("[Click Database]", file=b)
+-            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        self.assertEqual(
+-            [], json_array_to_python(db.get_manifests(all_versions=False)))
+-        self.assertEqual(
+-            [], json.loads(db.get_manifests_as_string(all_versions=False)))
+-        a_pkg1_manifest_path = os.path.join(
+-            self.temp_dir, "a", "pkg1", "1.0",
+-            ".click", "info", "pkg1.manifest")
+-        a_pkg1_manifest_obj = {"name": "pkg1", "version": "1.0"}
+-        with mkfile(a_pkg1_manifest_path) as a_pkg1_manifest:
+-            json.dump(a_pkg1_manifest_obj, a_pkg1_manifest)
+-        os.symlink("1.0", os.path.join(self.temp_dir, "a", "pkg1", "current"))
+-        b_pkg1_manifest_path = os.path.join(
+-            self.temp_dir, "b", "pkg1", "1.1",
+-            ".click", "info", "pkg1.manifest")
+-        b_pkg1_manifest_obj = {"name": "pkg1", "version": "1.1"}
+-        with mkfile(b_pkg1_manifest_path) as b_pkg1_manifest:
+-            json.dump(b_pkg1_manifest_obj, b_pkg1_manifest)
+-        os.symlink("1.1", os.path.join(self.temp_dir, "b", "pkg1", "current"))
+-        b_pkg2_manifest_path = os.path.join(
+-            self.temp_dir, "b", "pkg2", "0.1",
+-            ".click", "info", "pkg2.manifest")
+-        b_pkg2_manifest_obj = {"name": "pkg2", "version": "0.1"}
+-        with mkfile(b_pkg2_manifest_path) as b_pkg2_manifest:
+-            json.dump(b_pkg2_manifest_obj, b_pkg2_manifest)
+-        os.symlink("0.1", os.path.join(self.temp_dir, "b", "pkg2", "current"))
+-        b_pkg1_manifest_obj["_directory"] = os.path.join(
+-            self.temp_dir, "b", "pkg1", "1.1")
+-        b_pkg1_manifest_obj["_removable"] = 1
+-        b_pkg2_manifest_obj["_directory"] = os.path.join(
+-            self.temp_dir, "b", "pkg2", "0.1")
+-        b_pkg2_manifest_obj["_removable"] = 1
+-        self.assertEqual(
+-            [b_pkg1_manifest_obj, b_pkg2_manifest_obj],
+-            json_array_to_python(db.get_manifests(all_versions=False)))
+-        self.assertEqual(
+-            [b_pkg1_manifest_obj, b_pkg2_manifest_obj],
+-            json.loads(db.get_manifests_as_string(all_versions=False)))
+-
+-    def test_manifests_all(self):
+-        with open(os.path.join(self.temp_dir, "a.conf"), "w") as a:
+-            print("[Click Database]", file=a)
+-            print("root = %s" % os.path.join(self.temp_dir, "a"), file=a)
+-        with open(os.path.join(self.temp_dir, "b.conf"), "w") as b:
+-            print("[Click Database]", file=b)
+-            print("root = %s" % os.path.join(self.temp_dir, "b"), file=b)
+-        db = Click.DB()
+-        db.read(db_dir=self.temp_dir)
+-        self.assertEqual(
+-            [], json_array_to_python(db.get_manifests(all_versions=True)))
+-        self.assertEqual(
+-            [], json.loads(db.get_manifests_as_string(all_versions=True)))
+-        a_pkg1_manifest_path = os.path.join(
+-            self.temp_dir, "a", "pkg1", "1.0",
+-            ".click", "info", "pkg1.manifest")
+-        a_pkg1_manifest_obj = {"name": "pkg1", "version": "1.0"}
+-        with mkfile(a_pkg1_manifest_path) as a_pkg1_manifest:
+-            json.dump(a_pkg1_manifest_obj, a_pkg1_manifest)
+-        os.symlink("1.0", os.path.join(self.temp_dir, "a", "pkg1", "current"))
+-        b_pkg1_manifest_path = os.path.join(
+-            self.temp_dir, "b", "pkg1", "1.1",
+-            ".click", "info", "pkg1.manifest")
+-        b_pkg1_manifest_obj = {"name": "pkg1", "version": "1.1"}
+-        with mkfile(b_pkg1_manifest_path) as b_pkg1_manifest:
+-            json.dump(b_pkg1_manifest_obj, b_pkg1_manifest)
+-        os.symlink("1.1", os.path.join(self.temp_dir, "b", "pkg1", "current"))
+-        b_pkg2_manifest_path = os.path.join(
+-            self.temp_dir, "b", "pkg2", "0.1",
+-            ".click", "info", "pkg2.manifest")
+-        b_pkg2_manifest_obj = {"name": "pkg2", "version": "0.1"}
+-        with mkfile(b_pkg2_manifest_path) as b_pkg2_manifest:
+-            json.dump(b_pkg2_manifest_obj, b_pkg2_manifest)
+-        os.symlink("0.1", os.path.join(self.temp_dir, "b", "pkg2", "current"))
+-        a_pkg1_manifest_obj["_directory"] = os.path.join(
+-            self.temp_dir, "a", "pkg1", "1.0")
+-        a_pkg1_manifest_obj["_removable"] = 0
+-        b_pkg1_manifest_obj["_directory"] = os.path.join(
+-            self.temp_dir, "b", "pkg1", "1.1")
+-        b_pkg1_manifest_obj["_removable"] = 1
+-        b_pkg2_manifest_obj["_directory"] = os.path.join(
+-            self.temp_dir, "b", "pkg2", "0.1")
+-        b_pkg2_manifest_obj["_removable"] = 1
+-        self.assertEqual(
+-            [b_pkg1_manifest_obj, b_pkg2_manifest_obj, a_pkg1_manifest_obj],
+-            json_array_to_python(db.get_manifests(all_versions=True)))
+-        self.assertEqual(
+-            [b_pkg1_manifest_obj, b_pkg2_manifest_obj, a_pkg1_manifest_obj],
+-            json.loads(db.get_manifests_as_string(all_versions=True)))

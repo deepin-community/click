@@ -1,0 +1,15 @@
+1001_fully-adjust-DEFAULT_ROOT-if-set-via-configure-option.patch
+1005_silence-gi-repository-import-warnings.patch
+1006_click-tempdir-own-by-user-daemon-if-tests-run-as-root.patch
+1009_fix-unit-tests-as-root.patch
+1010_fix-ensure-ownership.patch
+1014_improve-check-for-overlayfs-kernel-module.patch
+1018_0755-tempdir-permissions.patch
+1020_run-sphinx-build-with-LANG-C.patch
+2001_tox-ini-only-use-versions-available-in-Debian.patch
+0005_click-tests-Use-SHA256-digest-for-test-signing-click.patch
+1015_drop-using-six.patch
+1016_dont-ship-tests-in-python3-click-package.patch
+2002_skip-framework-integration-tests.patch
+0006_fix-implicit-function-declaration.patch
+0007_add-support-for-loongarch.patch

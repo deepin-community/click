@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=com.lomiri.click
+User=root
+Exec=@pkglibexecdir@/click-service

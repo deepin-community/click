@@ -1,0 +1,19 @@
+#! /bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+	if ! getent passwd clickpkg >/dev/null; then
+		adduser --quiet --system --home /nonexistent --no-create-home \
+			--disabled-password --shell /bin/false --group \
+			clickpkg
+	fi
+
+	mkdir -p -m 755 /var/lib/clickpkg
+	chown clickpkg:clickpkg /var/lib/clickpkg
+
+	deb-systemd-helper enable click-user-hooks.service || true
+fi
+
+#DEBHELPER#
+
+exit 0

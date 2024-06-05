@@ -1,0 +1,3 @@
+[Click Database]
+# User-installed applications.
+root = @DEFAULT_ROOT@

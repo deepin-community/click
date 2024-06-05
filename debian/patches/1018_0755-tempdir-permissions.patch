@@ -1,0 +1,14 @@
+Description: Make tmpdir used for test-internal click package creation accessible by all.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+
+--- a/click_package/tests/integration/helpers.py
++++ b/click_package/tests/integration/helpers.py
+@@ -121,6 +121,8 @@
+             name = "com.example.%s" % "".join(
+                 random.choice(string.ascii_lowercase) for i in range(10))
+         tmpdir = tempfile.mkdtemp()
++        if os.geteuid() == 0:
++            os.chmod(tmpdir, 0o755)
+         self.addCleanup(lambda: shutil.rmtree(tmpdir))
+         clickdir = os.path.join(tmpdir, name)
+         os.makedirs(clickdir)

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node>
+    <interface name="com.lomiri.click">
+        <!-- Base stuff -->
+        <method name="Install">
+            <arg type="s" name="path" direction="in" />
+        </method>
+        <method name="Remove">
+            <arg type="s" name="id" direction="in" />
+        </method>
+    </interface>
+</node>

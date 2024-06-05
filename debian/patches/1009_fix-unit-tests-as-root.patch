@@ -1,0 +1,352 @@
+Description: Return daemon:daemon if tests are run as root.
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+
+--- a/click_package/tests/test_hooks.py
++++ b/click_package/tests/test_hooks.py
+@@ -286,9 +286,12 @@
+ 
+     def test_install_package(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam") as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             self._make_hook_file(
+                 "Pattern: %s/${id}.test" % self.temp_dir)
+             os.makedirs(
+@@ -306,9 +309,12 @@
+ 
+     def test_install_package_trailing_slash(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam") as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             self._make_hook_file(
+                 "Pattern: %s/${id}/" % self.temp_dir)
+             os.makedirs(
+@@ -359,9 +365,12 @@
+ 
+     def test_upgrade(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam") as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             self._make_hook_file(
+                 "Pattern: %s/${id}.test" % self.temp_dir)
+             symlink_path = os.path.join(
+@@ -380,9 +389,12 @@
+ 
+     def test_remove_package(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam") as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             self._make_hook_file(
+                 "Pattern: %s/${id}.test" % self.temp_dir)
+             symlink_path = os.path.join(
+@@ -395,10 +407,13 @@
+ 
+     def test_install(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam") as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(
+                 preloads, hooks_dir=os.path.join(self.temp_dir, "hooks"))
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             self._make_hook_file(
+                 "Pattern: %s/${id}.new" % self.temp_dir,
+                 hookname="new")
+@@ -428,10 +443,13 @@
+ 
+     def test_remove(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam") as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(
+                 preloads, hooks_dir=os.path.join(self.temp_dir, "hooks"))
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             self._make_hook_file(
+                 "Pattern: %s/${id}.old" % self.temp_dir,
+                 hookname="old")
+@@ -454,10 +472,13 @@
+ 
+     def test_sync(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam") as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(
+                 preloads, hooks_dir=os.path.join(self.temp_dir, "hooks"))
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             self._make_hook_file(
+                 "Pattern: %s/${id}.test" % self.temp_dir)
+             self._make_installed_click("test-1", "1.0", json_data={
+@@ -618,11 +639,14 @@
+ 
+     def test_install_package(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             os.makedirs(os.path.join(
+                 self.temp_dir, "org.example.package", "1.0"))
+             user_db = Click.User.for_user(self.db, self.TEST_USER)
+@@ -644,10 +668,13 @@
+ 
+     def test_install_package_trailing_slash(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
+             os.makedirs(os.path.join(
+                 self.temp_dir, "org.example.package", "1.0"))
+@@ -670,10 +697,13 @@
+ 
+     def test_install_package_removes_previous(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
+             os.makedirs(os.path.join(
+                 self.temp_dir, "org.example.package", "1.0"))
+@@ -704,10 +734,13 @@
+ 
+     def test_upgrade(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
+             symlink_path = os.path.join(
+                 self.temp_dir, "org.example.package_test-app_1.0.test")
+@@ -731,10 +764,13 @@
+ 
+     def test_remove_package(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
+             self._make_hook_file(dedent("""\
+                 User-Level: yes
+@@ -816,11 +852,14 @@
+ 
+     def test_remove(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             # Don't tell click about the hooks directory yet.
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
+             with mkfile(os.path.join(self.temp_dir, "hooks", "old.hook")) as f:
+                 print("User-Level: yes", file=f)
+@@ -847,11 +886,14 @@
+ 
+     def test_sync(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             with mkfile(
+                     os.path.join(self.temp_dir, "hooks", "test.hook")) as f:
+                 print("User-Level: yes", file=f)
+@@ -893,11 +935,14 @@
+ 
+     def test_sync_without_user_db(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             with mkfile(
+                     os.path.join(self.temp_dir, "hooks", "test.hook")) as f:
+                 print("User-Level: yes", file=f)
+@@ -922,10 +967,14 @@
+         # match system hooks so that (for example) the version of an
+         # application run by a user has a matching system AppArmor profile.
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir", "click_get_user_home",
++                "click_get_hooks_dir", "click_get_user_home", "getpwnam",
++                #"__xstat", "__xstat64",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_hooks_dir(preloads)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             preloads["click_get_user_home"].return_value = b"/home/test-user"
+             with mkfile(os.path.join(self.temp_dir, "test.hook")) as f:
+                 print("User-Level: yes", file=f)
+@@ -961,6 +1010,14 @@
+             underlay_target_path = os.path.join(underlay_user_link, "foo")
+             overlay_target_path = os.path.join(overlay_user_link, "foo")
+             os.symlink(overlay_target_path, symlink_path)
++            if os.geteuid() == 0:
++                for root, dirs, files in os.walk(self.temp_dir):
++                    for d in dirs:
++                        print (d)
++                        os.chown(os.path.join(root, d), 1, 1, follow_symlinks=False)
++                    for f in files:
++                        print (f)
++                        os.chown(os.path.join(root, f), 1, 1, follow_symlinks=False)
+             hook = Click.Hook.open(db, "test")
+             hook.sync(user_name=self.TEST_USER)
+             self.assertTrue(os.path.islink(underlay_user_link))
+@@ -974,10 +1031,13 @@
+ class TestPackageInstallHooks(TestClickHookBase):
+     def test_removes_old_hooks(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam", ) as (enter, preloads):
+             enter()
+             hooks_dir = os.path.join(self.temp_dir, "hooks")
+             self._setup_hooks_dir(preloads, hooks_dir=hooks_dir)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             with mkfile(os.path.join(hooks_dir, "unity.hook")) as f:
+                 print("Pattern: %s/unity/${id}.scope" % self.temp_dir, file=f)
+                 print("Single-Version: yes", file=f)
+@@ -1013,10 +1073,13 @@
+ 
+     def test_installs_new_hooks(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam", ) as (enter, preloads):
+             enter()
+             hooks_dir = os.path.join(self.temp_dir, "hooks")
+             self._setup_hooks_dir(preloads, hooks_dir=hooks_dir)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             with mkfile(os.path.join(hooks_dir, "a.hook")) as f:
+                 print("Pattern: %s/a/${id}.a" % self.temp_dir, file=f)
+             with mkfile(os.path.join(hooks_dir, "b-1.hook")) as f:
+@@ -1042,10 +1105,13 @@
+ 
+     def test_upgrades_existing_hooks(self):
+         with self.run_in_subprocess(
+-                "click_get_hooks_dir") as (enter, preloads):
++                "click_get_hooks_dir", "getpwnam", ) as (enter, preloads):
+             enter()
+             hooks_dir = os.path.join(self.temp_dir, "hooks")
+             self._setup_hooks_dir(preloads, hooks_dir=hooks_dir)
++            if os.geteuid() == 0:
++                preloads["getpwnam"].side_effect = (
++                    lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+             with mkfile(os.path.join(hooks_dir, "a.hook")) as f:
+                 print("Pattern: %s/a/${id}.a" % self.temp_dir, file=f)
+                 print("Single-Version: yes", file=f)
+@@ -1146,6 +1212,9 @@
+ 
+     def _setup_test_env(self, preloads):
+         preloads["click_get_user_home"].return_value = b"/home/test-user"
++        if os.geteuid() == 0:
++            preloads["getpwnam"].side_effect = (
++                lambda name: self.make_pointer(Passwd(pw_uid=1, pw_gid=1)))
+         self._setup_hooks_dir(
+             preloads, os.path.join(self.temp_dir, "hooks"))
+         self._make_hook_file(dedent("""\
+@@ -1158,7 +1227,7 @@
+     def test_links_are_kept_on_validate_framework(self):
+         with self.run_in_subprocess(
+                 "click_get_hooks_dir", "click_get_user_home",
+-                "click_get_frameworks_dir",
++                "click_get_frameworks_dir", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_frameworks(
+@@ -1178,7 +1247,7 @@
+     def test_links_are_kept_multiple_frameworks(self):
+         with self.run_in_subprocess(
+                 "click_get_hooks_dir", "click_get_user_home",
+-                "click_get_frameworks_dir",
++                "click_get_frameworks_dir", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_frameworks(
+@@ -1198,7 +1267,7 @@
+     def test_links_are_removed_on_missing_framework(self):
+         with self.run_in_subprocess(
+                 "click_get_hooks_dir", "click_get_user_home",
+-                "click_get_frameworks_dir",
++                "click_get_frameworks_dir", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_frameworks(preloads, frameworks=["missing"])
+@@ -1217,7 +1286,7 @@
+     def test_links_are_removed_on_missing_multiple_framework(self):
+         with self.run_in_subprocess(
+                 "click_get_hooks_dir", "click_get_user_home",
+-                "click_get_frameworks_dir",
++                "click_get_frameworks_dir", "getpwnam",
+                 ) as (enter, preloads):
+             enter()
+             self._setup_frameworks(preloads, frameworks=["ubuntu-sdk-13.10"])
